@@ -9,4 +9,6 @@ public class Notification
     public string Message { get; set; } = string.Empty;
     public NotificationStatus Status { get; set; } = NotificationStatus.Unread;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public User? User { get; set; } = null;
 }

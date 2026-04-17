@@ -14,4 +14,5 @@ public class Reservation
 
     public Property? Property { get; set; } = null;
     public User? Guest { get; set; } = null;
+    public Review? Review { get; set; } = null;
 }
