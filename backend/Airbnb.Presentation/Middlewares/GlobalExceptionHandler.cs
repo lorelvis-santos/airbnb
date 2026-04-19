@@ -3,7 +3,6 @@ using Airbnb.Domain.Enum;
 using Airbnb.Domain.Exceptions;
 using Airbnb.Presentation.Models;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Airbnb.Presentation.Middlewares;
 

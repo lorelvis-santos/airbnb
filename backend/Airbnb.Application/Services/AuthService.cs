@@ -1,5 +1,3 @@
-// Airbnb.Application/Services/AuthService.cs
-using Airbnb.Application.Dtos;
 using Airbnb.Application.Dtos.Auth;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Entities;
