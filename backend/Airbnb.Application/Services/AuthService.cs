@@ -12,15 +12,19 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenProvider _tokenProvider;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        ITokenProvider tokenProvider)
+        ITokenProvider tokenProvider,
+        IEmailService emailService
+    ) 
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenProvider = tokenProvider;
+        _emailService = emailService;
     }
 
     public async Task RegisterAsync(RegisterDto dto)
@@ -54,8 +58,13 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
 
-        // TODO: Implementar servicio de envio de correos
-        Console.WriteLine($"[SIMULACIÓN EMAIL] Para confirmar cuenta, usa el token: {confirmationToken}");
+        // Llamada real al servicio de correo electrónico en segundo plano
+
+        // TODO: Refinar el correo, para que sea mas completo o trabajar mediante confirmacion por codigo.
+        string subject = "Confirma tu cuenta en la plataforma";
+        string body = $"Hola {user.FullName},\n\nGracias por registrarte. Para completar tu registro y poder iniciar sesión, por favor confirma tu cuenta utilizando el siguiente token:\n\n{confirmationToken}\n\nEste token expirará en 120 minutos.";
+        
+        await _emailService.SendEmailAsync(user.Email, subject, body);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
