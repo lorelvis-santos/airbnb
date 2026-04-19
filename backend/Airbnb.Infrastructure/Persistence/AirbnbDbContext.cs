@@ -62,7 +62,7 @@ public class AirbnbDbContext : DbContext
         // Configuración de notificaciones
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasOne<User>()
+            entity.HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId);
         });

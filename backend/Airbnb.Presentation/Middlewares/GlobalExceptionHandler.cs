@@ -38,6 +38,14 @@ public class GlobalExceptionHandler : IExceptionHandler
             await context.Response.WriteAsJsonAsync(response, cancellationToken);
 
             return true;
+        } 
+        else if (exception is BadHttpRequestException badRequestException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            var response = ApiResponse<object>.Failure("El formato de la petición es incorrecto o no se envió el cuerpo (JSON) requerido.");
+            
+            await context.Response.WriteAsJsonAsync(response, cancellationToken);
+            return true;
         }
 
         // Manejo de errores no controlados (Errores 500)

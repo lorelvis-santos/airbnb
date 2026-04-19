@@ -34,6 +34,11 @@ public class AuthService : IAuthService
             throw new AppException(ErrorType.Conflict, "El correo electrónico ya está registrado.");
         }
 
+        if (dto.Password.Trim().Length < 8)
+        {
+            throw new AppException(ErrorType.Validation, "La contraseña debe de tener minimo 8 carácteres");
+        }
+
         // Generamos un token único para la confirmación de correo
         var confirmationToken = Guid.NewGuid().ToString();
 
@@ -58,6 +63,11 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
         var user = await _userRepository.GetUserByEmailAsync(dto.Email);
+
+        if (dto.Password.Trim().Length < 8)
+        {
+            throw new AppException(ErrorType.Validation, "La contraseña debe de tener minimo 8 carácteres");
+        }
         
         if (user == null || !_passwordHasher.Verify(dto.Password, user.Password))
         {
