@@ -113,5 +113,11 @@ public static class PropertyEndpoints
             await service.DeletePropertyBlockAsync(id, blockId, hostId);
             return Results.Ok(ApiResponse<object>.Success(new { message = "Fechas desbloqueadas correctamente." }));
         });
+
+        group.MapGet("/{id}/rating", async (Guid id, IReviewService service) =>
+        {
+            var stats = await service.GetPropertyRatingStatsAsync(id);
+            return Results.Ok(ApiResponse<object>.Success(stats));
+        });
     }
 }

@@ -1,7 +1,11 @@
 // Airbnb.Presentation/Endpoints/ReservationEndpoints.cs
+using System.Security.Claims;
 using Airbnb.Application.Dtos;
+using Airbnb.Application.Dtos.Review;
 using Airbnb.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+using Airbnb.Presentation.Extensions;
+using Airbnb.Presentation.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Airbnb.Presentation.Endpoints;
 
@@ -12,45 +16,41 @@ public static class ReservationEndpoints
         var group = app.MapGroup("/api/reservations").WithTags("Reservations");
 
         // Crear una nueva reserva
-        group.MapPost("/", async (CreateReservationDto dto, IReservationService service) =>
+        group.MapPost("/", [Authorize] async (CreateReservationDto dto, ClaimsPrincipal user, IReservationService service) =>
         {
-            try 
-            {
-                var reservation = await service.CreateReservationAsync(dto);
-                return Results.Created($"/api/reservations/{reservation.Id}", reservation);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = ex.Message });
-            }
+            // Forzamos que el GuestId sea el dueño del token, evitando que alguien falsifique el ID
+            dto.GuestId = user.GetUserId();
+            
+            var reservation = await service.CreateReservationAsync(dto);
+            return Results.Created($"/api/reservations/{reservation.Id}", ApiResponse<object>.Success(reservation));
         });
 
-        // Cancelar reserva (Simulando UserId por Header para pruebas)
-        group.MapPatch("/{id}/cancel", async (Guid id, [FromHeader(Name = "X-User-Id")] Guid userId, IReservationService service) =>
+        // Cancelacion de una reserva
+        group.MapPatch("/{id}/cancel", [Authorize] async (Guid id, ClaimsPrincipal user, IReservationService service) =>
         {
-            try
-            {
-                await service.CancelReservationAsync(id, userId);
-                return Results.NoContent();
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = ex.Message });
-            }
+            var userId = user.GetUserId();
+            await service.CancelReservationAsync(id, userId);
+            
+            return Results.Ok(ApiResponse<object>.Success(new { message = "Reserva cancelada correctamente." }));
         });
 
-        // Completar reserva (Acción automática o de sistema)
-        group.MapPatch("/{id}/complete", async (Guid id, IReservationService service) =>
+        // Completar reserva
+        group.MapPatch("/{id}/complete", [Authorize] async (Guid id, IReservationService service) =>
         {
-            try
-            {
-                await service.CompleteReservationAsync(id);
-                return Results.NoContent();
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = ex.Message });
-            }
+            await service.CompleteReservationAsync(id);
+            return Results.Ok(ApiResponse<object>.Success(new { message = "Reserva completada exitosamente." }));
+        });
+
+        // Dejar reseña
+        group.MapPost("/{id}/reviews", [Authorize] async (
+            Guid id, 
+            CreateReviewDto dto, 
+            ClaimsPrincipal user, 
+            IReviewService service) =>
+        {
+            var guestId = user.GetUserId();
+            var review = await service.CreateReviewAsync(id, guestId, dto);
+            return Results.Created($"/api/reservations/{id}/reviews/{review.Id}", ApiResponse<object>.Success(review));
         });
     }
 }
