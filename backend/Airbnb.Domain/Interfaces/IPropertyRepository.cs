@@ -5,7 +5,8 @@ namespace Airbnb.Domain.Interfaces;
 public interface IPropertyRepository : IRepository<Property>
 {
     Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
-        string? location, 
+        string? city, 
+        string? province, 
         DateTime startDate, 
         DateTime endDate, 
         int? capacity

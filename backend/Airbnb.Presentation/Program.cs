@@ -59,6 +59,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPropertyService, PropertyService>();
 
 var app = builder.Build();
 
@@ -84,6 +85,7 @@ app.UseAuthorization();
 // Registramos los Endpoints
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
+app.MapPropertyEndpoints();
 // app.MapReservationEndpoints(); // Descomenta esto cuando tengas tus ReservationEndpoints listos
 
 app.Run();

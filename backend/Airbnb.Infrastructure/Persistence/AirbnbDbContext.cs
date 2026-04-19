@@ -9,6 +9,7 @@ public class AirbnbDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Property> Properties => Set<Property>();
+    public DbSet<PropertyImage> PropertyImages => Set<PropertyImage>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<PropertyBlock> PropertyBlocks => Set<PropertyBlock>();
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -65,6 +66,15 @@ public class AirbnbDbContext : DbContext
             entity.HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId);
+        });
+
+        // Configuración de las imagenes de las propiedades
+        modelBuilder.Entity<PropertyImage>(entity =>
+        {
+            entity.HasOne(i => i.Property)
+                .WithMany(p => p.Images)
+                .HasForeignKey(i => i.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade); // Si se borra la propiedad, se borran los registros de sus imágenes
         });
     }
 }
