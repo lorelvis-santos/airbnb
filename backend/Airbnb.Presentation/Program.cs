@@ -54,6 +54,7 @@ builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRepository<PropertyImage>, Repository<PropertyImage>>();
+builder.Services.AddScoped<IRepository<PropertyBlock>, Repository<PropertyBlock>>();
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();

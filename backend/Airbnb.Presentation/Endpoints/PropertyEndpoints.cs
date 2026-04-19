@@ -89,5 +89,29 @@ public static class PropertyEndpoints
             
             return Results.Ok(ApiResponse<object>.Success(new { message = "Imagen eliminada correctamente." }));
         });
+
+        group.MapPost("/{id}/blocks", [Authorize(Roles = "Host")] async (
+            Guid id, 
+            CreatePropertyBlockDto dto, 
+            ClaimsPrincipal user, 
+            IPropertyService service
+        ) =>
+        {
+            var hostId = user.GetUserId();
+            var block = await service.BlockPropertyDatesAsync(id, hostId, dto);
+            return Results.Ok(ApiResponse<object>.Success(block));
+        });
+
+        group.MapDelete("/{id}/blocks/{blockId}", [Authorize(Roles = "Host")] async (
+            Guid id, 
+            Guid blockId, 
+            ClaimsPrincipal user, 
+            IPropertyService service
+        ) =>
+        {
+            var hostId = user.GetUserId();
+            await service.DeletePropertyBlockAsync(id, blockId, hostId);
+            return Results.Ok(ApiResponse<object>.Success(new { message = "Fechas desbloqueadas correctamente." }));
+        });
     }
 }

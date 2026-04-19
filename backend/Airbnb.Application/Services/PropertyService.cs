@@ -13,17 +13,19 @@ public class PropertyService : IPropertyService
     private readonly IPropertyRepository _propertyRepository;
     private readonly IRepository<PropertyImage> _imageRepository;
     private readonly IFileStorageService _storageService;
+    private readonly IRepository<PropertyBlock> _blockRepository;
 
     public PropertyService(
         IPropertyRepository propertyRepository,
         IRepository<PropertyImage> imageRepository,
-        IFileStorageService storageService
+        IFileStorageService storageService,
+        IRepository<PropertyBlock> blockRepository
     )
     {
         _propertyRepository = propertyRepository;
         _imageRepository = imageRepository;
         _storageService = storageService;
-        
+        _blockRepository = blockRepository;        
     }
 
     public async Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId)
@@ -182,5 +184,58 @@ public class PropertyService : IPropertyService
 
         // 2. Eliminamos el registro de la base de datos
         await _imageRepository.DeleteAsync(image);
+    }
+
+    public async Task<PropertyBlock> BlockPropertyDatesAsync(Guid propertyId, Guid hostId, CreatePropertyBlockDto dto)
+    {
+        var property = await _propertyRepository.GetByIdAsync(propertyId);
+        
+        if (property == null)
+        {
+            throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        }
+
+        if (property.HostId != hostId)
+        {
+            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
+        }
+        
+        if (dto.StartDate.Date < DateTime.UtcNow.Date)
+        {
+            throw new AppException(ErrorType.Validation, "No puedes bloquear fechas en el pasado.");
+        }
+            
+        if (dto.StartDate >= dto.EndDate)
+        {
+            throw new AppException(ErrorType.Validation, "La fecha de inicio debe ser anterior a la fecha de fin.");
+        }
+
+        var block = new PropertyBlock
+        {
+            Id = Guid.NewGuid(),
+            PropertyId = propertyId,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate
+        };
+
+        await _blockRepository.AddAsync(block);
+        return block;
+    }
+
+    public async Task DeletePropertyBlockAsync(Guid propertyId, Guid blockId, Guid hostId)
+    {
+        var property = await _propertyRepository.GetByIdAsync(propertyId);
+        
+        if (property == null) throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        if (property.HostId != hostId) throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
+
+        var block = await _blockRepository.GetByIdAsync(blockId);
+        
+        if (block == null || block.PropertyId != propertyId)
+        {
+            throw new AppException(ErrorType.NotFound, "El bloqueo especificado no existe en este alojamiento.");
+        }
+
+        await _blockRepository.DeleteAsync(block);
     }
 }

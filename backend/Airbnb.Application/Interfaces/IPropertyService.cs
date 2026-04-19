@@ -18,4 +18,7 @@ public interface IPropertyService
         DateTime startDate, 
         DateTime endDate, 
         int? capacity);
+
+    Task<PropertyBlock> BlockPropertyDatesAsync(Guid propertyId, Guid hostId, CreatePropertyBlockDto dto);
+    Task DeletePropertyBlockAsync(Guid propertyId, Guid blockId, Guid hostId);
 }
