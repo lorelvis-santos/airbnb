@@ -11,10 +11,19 @@ namespace Airbnb.Application.Services;
 public class PropertyService : IPropertyService
 {
     private readonly IPropertyRepository _propertyRepository;
+    private readonly IRepository<PropertyImage> _imageRepository;
+    private readonly IFileStorageService _storageService;
 
-    public PropertyService(IPropertyRepository propertyRepository)
+    public PropertyService(
+        IPropertyRepository propertyRepository,
+        IRepository<PropertyImage> imageRepository,
+        IFileStorageService storageService
+    )
     {
         _propertyRepository = propertyRepository;
+        _imageRepository = imageRepository;
+        _storageService = storageService;
+        
     }
 
     public async Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId)
@@ -28,7 +37,7 @@ public class PropertyService : IPropertyService
             Province = dto.Province,
             PricePerNight = dto.PricePerNight,
             Capacity = dto.Capacity,
-            HostId = hostId // Asignamos al creador automáticamente
+            HostId = hostId
         };
 
         await _propertyRepository.AddAsync(property);
@@ -104,5 +113,74 @@ public class PropertyService : IPropertyService
 
         // Si las reglas de negocio pasan, delegamos el filtrado pesado a la Base de Datos
         return await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+    }
+
+    public async Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files)
+    {
+        var property = await _propertyRepository.GetByIdAsync(propertyId);
+        
+        if (property == null)
+        {
+            throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        }
+
+        if (property.HostId != hostId)
+        {
+            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
+        }
+
+        if (files == null || files.Count == 0)
+        {
+            throw new AppException(ErrorType.Validation, "No se enviaron archivos.");
+        }
+
+        var uploadedUrls = new List<string>();
+
+        foreach (var file in files)
+        {
+            // Delegamos el guardado físico a la Infraestructura
+            var relativeUrl = await _storageService.SaveFileAsync(file.Content, file.Extension);
+
+            var propertyImage = new PropertyImage
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = propertyId,
+                Url = relativeUrl
+            };
+
+            await _imageRepository.AddAsync(propertyImage);
+            uploadedUrls.Add(relativeUrl);
+        }
+
+        return uploadedUrls;
+    }
+
+    public async Task DeletePropertyImageAsync(Guid propertyId, Guid imageId, Guid hostId)
+    {
+        var property = await _propertyRepository.GetByIdAsync(propertyId);
+        
+        if (property == null)
+        {
+            throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        }
+            
+        if (property.HostId != hostId)
+        {
+            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
+        }
+
+        var image = await _imageRepository.GetByIdAsync(imageId);
+        
+        // Validamos que la imagen exista y pertenezca a la propiedad especificada
+        if (image == null || image.PropertyId != propertyId)
+        {
+            throw new AppException(ErrorType.NotFound, "La imagen especificada no existe en este alojamiento.");
+        }
+
+        // 1. Eliminamos el archivo físico del servidor
+        await _storageService.DeleteFileAsync(image.Url);
+
+        // 2. Eliminamos el registro de la base de datos
+        await _imageRepository.DeleteAsync(image);
     }
 }

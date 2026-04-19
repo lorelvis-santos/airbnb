@@ -59,5 +59,35 @@ public static class PropertyEndpoints
             var properties = await service.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
             return Results.Ok(ApiResponse<object>.Success(properties));
         });
+
+        group.MapPost("/{id}/images", [Authorize(Roles = "Host")] async (
+            Guid id, 
+            IFormFileCollection files, 
+            ClaimsPrincipal user, 
+            IPropertyService service) =>
+        {
+            var hostId = user.GetUserId();
+
+            // Mapeo seguro: Extraemos el Stream y la extensión sin enviar objetos HTTP a la capa de Aplicación
+            var fileData = files.Select(f => (f.OpenReadStream(), Path.GetExtension(f.FileName))).ToList();
+
+            var imageUrls = await service.UploadPropertyImagesAsync(id, hostId, fileData);
+
+            return Results.Ok(ApiResponse<object>.Success(new { urls = imageUrls }));
+        }).DisableAntiforgery();
+
+        group.MapDelete("/{id}/images/{imageId}", [Authorize(Roles = "Host")] async (
+            Guid id, 
+            Guid imageId, 
+            ClaimsPrincipal user, 
+            IPropertyService service
+        ) =>
+        {
+            var hostId = user.GetUserId();
+            
+            await service.DeletePropertyImageAsync(id, imageId, hostId);
+            
+            return Results.Ok(ApiResponse<object>.Success(new { message = "Imagen eliminada correctamente." }));
+        });
     }
 }

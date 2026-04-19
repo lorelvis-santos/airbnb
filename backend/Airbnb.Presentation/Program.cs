@@ -1,10 +1,12 @@
 using System.Text;
 using Airbnb.Application.Interfaces;
 using Airbnb.Application.Services;
+using Airbnb.Domain.Entities;
 using Airbnb.Domain.Interfaces;
 using Airbnb.Infrastructure.Persistence;
 using Airbnb.Infrastructure.Repositories;
 using Airbnb.Infrastructure.Security;
+using Airbnb.Infrastructure.Services;
 using Airbnb.Presentation.Endpoints;
 using Airbnb.Presentation.Middlewares; 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -51,9 +53,11 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRepository<PropertyImage>, Repository<PropertyImage>>();
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
@@ -81,6 +85,7 @@ app.MapGet("/api/status", () =>
 // Activamos los middlewares de seguridad - El orden importa, por eso puse api/status antes para saber si esta ok
 app.UseAuthentication(); 
 app.UseAuthorization();  
+app.UseStaticFiles();
 
 // Registramos los Endpoints
 app.MapAuthEndpoints();

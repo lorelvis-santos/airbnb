@@ -9,6 +9,8 @@ public interface IPropertyService
     Task<Property> UpdatePropertyAsync(Guid propertyId, UpdatePropertyDto dto, Guid hostId);
     Task DeletePropertyAsync(Guid propertyId, Guid hostId);
     Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId);
+    Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files);
+    Task DeletePropertyImageAsync(Guid propertyId, Guid imageId, Guid hostId);
 
     Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
         string? city, 
