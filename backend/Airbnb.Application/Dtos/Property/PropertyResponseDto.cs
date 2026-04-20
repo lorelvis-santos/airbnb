@@ -9,6 +9,8 @@ public class PropertyResponseDto
     
     public HostSimpleDto? Host { get; set; } = null;
     public List<string> Images { get; set; } = [];
+    public double AverageRating { get; set; }
+    public int ReviewsCount { get; set; }
 }
 
 public class HostSimpleDto

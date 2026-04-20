@@ -14,4 +14,5 @@ public class Property
     public ICollection<PropertyBlock> Blocks { get; set; } = [];
     public ICollection<PropertyImage> Images { get; set; } = [];
     public ICollection<Reservation> Reservations { get; set; } = [];
+    public ICollection<Review> Reviews { get; set; } = [];
 }

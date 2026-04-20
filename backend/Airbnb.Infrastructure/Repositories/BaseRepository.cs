@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Airbnb.Domain.Interfaces;
 using Airbnb.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -41,5 +42,29 @@ public class Repository<T> : IRepository<T> where T : class
     {
         _dbSet.Remove(item);
         await _context.SaveChangesAsync();
+    }
+
+    public IQueryable<T> GetQueryable()
+    {
+        return _context.Set<T>().AsQueryable();
+    }
+
+    public async Task<(List<TDto> Items, int TotalCount)> GetPagedProjectedAsync<TDto>(
+        IQueryable<T> query, 
+        Expression<Func<T, TDto>> projection, 
+        int pageNumber, 
+        int pageSize)
+    {
+        // 1. EF Core cuenta los registros totales
+        var totalCount = await query.CountAsync();
+
+        // 2. EF Core proyecta (Select), Pagina (Skip/Take) y ejecuta asíncronamente
+        var items = await query
+            .Select(projection)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }

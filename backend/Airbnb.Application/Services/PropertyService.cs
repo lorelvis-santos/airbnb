@@ -1,10 +1,10 @@
-// Airbnb.Application/Services/PropertyService.cs
 using Airbnb.Application.Dtos.Property;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Entities;
 using Airbnb.Domain.Enum;
 using Airbnb.Domain.Exceptions;
 using Airbnb.Domain.Interfaces;
+using Airbnb.Application.Dtos;
 
 namespace Airbnb.Application.Services;
 
@@ -28,25 +28,41 @@ public class PropertyService : IPropertyService
         _blockRepository = blockRepository;        
     }
 
-    public async Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync()
+    public async Task<PagedResult<PropertyResponseDto>> GetAllPropertiesAsync(int pageNumber = 1, int pageSize = 12)
     {
-        var properties = await _propertyRepository.GetAllPropertiesWithDetailsAsync();
+        var query = _propertyRepository.GetQueryable();
 
-        var propertyDtos = properties.Select(p => new PropertyResponseDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            City = p.City,
-            PricePerNight = p.PricePerNight,
-            Host = p.Host != null ? new HostSimpleDto 
+        // Llamamos al repositorio pasándole la consulta base, la expresión de mapeo y los datos de paginación
+        var (items, totalCount) = await _propertyRepository.GetPagedProjectedAsync(
+            query,
+            // Esta es la Expression<Func<Property, PropertyResponseDto>>
+            p => new PropertyResponseDto
             {
-                Id = p.Host.Id,
-                FullName = p.Host.FullName
-            } : null,
-            Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>()
-        }).ToList();
+                Id = p.Id,
+                Title = p.Title,
+                City = p.City,
+                PricePerNight = p.PricePerNight,
+                Host = p.Host != null ? new HostSimpleDto 
+                {
+                    Id = p.HostId,
+                    FullName = p.Host.FullName
+                } : null,
+                Images = p.Images.Select(i => i.Url).ToList(),
+                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                ReviewsCount = p.Reviews.Count()
+            },
+            pageNumber,
+            pageSize
+        );
 
-        return propertyDtos;
+        // Retornamos el envolvente final a la API
+        return new PagedResult<PropertyResponseDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<PropertyDetailDto> GetPropertyByIdAsync(Guid id)
@@ -69,6 +85,80 @@ public class PropertyService : IPropertyService
                 null,
             Images = property.Images.Select(i => i.Url).ToList(),
             Blocks = property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate }).ToList()
+        };
+    }
+
+    public async Task<PagedResult<Property>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12)
+    {
+        // Asumiendo que GetPropertiesByHostAsync del repo devuelve un IEnumerable
+        var properties = await _propertyRepository.GetPropertiesByHostAsync(hostId);
+        
+        var totalCount = properties.Count();
+        var pagedItems = properties
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new PagedResult<Property>
+        {
+            Items = pagedItems,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
+    // CORRECCIÓN 3: Implementación de la paginación para el Buscador
+    public async Task<PagedResult<PropertyResponseDto>> SearchAvailablePropertiesAsync(
+        string? city, 
+        string? province,
+        DateTime startDate, 
+        DateTime endDate, 
+        int? capacity,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int pageNumber = 1, 
+        int pageSize = 12
+    )
+    {
+        if (startDate >= endDate)
+            throw new AppException(ErrorType.Validation, "La fecha de inicio (Check-in) debe ser anterior a la fecha de salida (Check-out).");
+
+        if (startDate.Date < DateTime.UtcNow.Date)
+            throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
+
+        // Buscamos las entidades
+        var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
+
+        // Contamos el total para la metadata de la paginación
+        var totalCount = properties.Count();
+
+        // Paginamos en memoria y Mapeamos a DTO
+        var propertyDtos = properties
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PropertyResponseDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                City = p.City,
+                PricePerNight = p.PricePerNight,
+                Host = p.Host != null ? new HostSimpleDto 
+                {
+                    Id = p.Host.Id,
+                    FullName = p.Host.FullName
+                } : null,
+                Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>(),
+                AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
+            }).ToList();
+
+        return new PagedResult<PropertyResponseDto>
+        {
+            Items = propertyDtos,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
         };
     }
 
@@ -132,53 +222,6 @@ public class PropertyService : IPropertyService
         }
 
         await _propertyRepository.DeleteAsync(property);
-    }
-
-    public async Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId)
-    {
-        return await _propertyRepository.GetPropertiesByHostAsync(hostId);
-    }
-
-    public async Task<IEnumerable<PropertyResponseDto>> SearchAvailablePropertiesAsync(
-        string? city, 
-        string? province,
-        DateTime startDate, 
-        DateTime endDate, 
-        int? capacity,
-        decimal? minPrice,
-        decimal? maxPrice
-    )
-    {
-        // Validaciones básicas de congruencia de fechas
-        if (startDate >= endDate)
-        {
-            throw new AppException(ErrorType.Validation, "La fecha de inicio (Check-in) debe ser anterior a la fecha de salida (Check-out).");
-        }
-
-        if (startDate.Date < DateTime.UtcNow.Date)
-        {
-            throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
-        }
-
-        // Buscamos las entidades en la base de datos
-        var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
-
-        // Mapeamos de Entidad (Dominio) a DTO (Aplicación)
-        var propertyDtos = properties.Select(p => new PropertyResponseDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            City = p.City,
-            PricePerNight = p.PricePerNight,
-            Host = p.Host != null ? new HostSimpleDto 
-            {
-                Id = p.Host.Id,
-                FullName = p.Host.FullName
-            } : null,
-            Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>()
-        }).ToList();
-
-        return propertyDtos;
     }
 
     public async Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files)

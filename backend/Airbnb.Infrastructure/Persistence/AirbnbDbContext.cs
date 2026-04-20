@@ -58,6 +58,16 @@ public class AirbnbDbContext : DbContext
         {
             entity.HasIndex(r => r.ReservationId).IsUnique();
             entity.Property(r => r.Comment).HasMaxLength(1000);
+
+            entity.HasOne(r => r.Property)
+                .WithMany(p => p.Reviews)
+                .HasForeignKey(r => r.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade); // Si se borra la propiedad, se borran sus reseñas
+                
+            entity.HasOne(r => r.Guest)
+                .WithMany()
+                .HasForeignKey(r => r.GuestId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Configuración de notificaciones
