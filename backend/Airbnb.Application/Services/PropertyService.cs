@@ -41,6 +41,7 @@ public class PropertyService : IPropertyService
                 Id = p.Id,
                 Title = p.Title,
                 City = p.City,
+                Province = p.Province,
                 PricePerNight = p.PricePerNight,
                 Host = p.Host != null ? new HostSimpleDto 
                 {
@@ -122,10 +123,14 @@ public class PropertyService : IPropertyService
     )
     {
         if (startDate >= endDate)
+        {
             throw new AppException(ErrorType.Validation, "La fecha de inicio (Check-in) debe ser anterior a la fecha de salida (Check-out).");
+        }
 
         if (startDate.Date < DateTime.UtcNow.Date)
+        {
             throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
+        }
 
         // Buscamos las entidades
         var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
@@ -142,6 +147,7 @@ public class PropertyService : IPropertyService
                 Id = p.Id,
                 Title = p.Title,
                 City = p.City,
+                Province = p.Province,
                 PricePerNight = p.PricePerNight,
                 Host = p.Host != null ? new HostSimpleDto 
                 {
