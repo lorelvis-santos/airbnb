@@ -21,6 +21,15 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             .ToListAsync();
     }
 
+    public async Task<Property?> GetByIdWithDetailsAsync(Guid id)
+    {
+        return await _dbSet
+            .Include(p => p.Images)
+            .Include(p => p.Host)
+            .Include(p => p.Blocks)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
     public async Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId)
     {
         return await _dbSet

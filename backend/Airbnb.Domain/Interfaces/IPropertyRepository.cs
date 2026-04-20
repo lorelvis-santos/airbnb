@@ -6,6 +6,8 @@ public interface IPropertyRepository : IRepository<Property>
 {
     Task<IEnumerable<Property>> GetAllPropertiesWithDetailsAsync();
 
+    Task<Property?> GetByIdWithDetailsAsync(Guid id);
+
     Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province, 

@@ -6,6 +6,7 @@ namespace Airbnb.Application.Interfaces;
 public interface IPropertyService
 {
     Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync();
+    Task<PropertyDetailDto> GetPropertyByIdAsync(Guid id);
     Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId);
     Task<Property> UpdatePropertyAsync(Guid propertyId, UpdatePropertyDto dto, Guid hostId);
     Task DeletePropertyAsync(Guid propertyId, Guid hostId);

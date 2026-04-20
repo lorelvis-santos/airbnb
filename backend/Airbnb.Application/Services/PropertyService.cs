@@ -49,6 +49,27 @@ public class PropertyService : IPropertyService
         return propertyDtos;
     }
 
+    public async Task<PropertyDetailDto> GetPropertyByIdAsync(Guid id)
+    {
+        var property = await _propertyRepository.GetByIdWithDetailsAsync(id);
+        
+        if (property == null) throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+
+        return new PropertyDetailDto
+        {
+            Id = property.Id,
+            Title = property.Title,
+            Description = property.Description,
+            City = property.City,
+            Province = property.Province,
+            PricePerNight = property.PricePerNight,
+            Capacity = property.Capacity,
+            Host = new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName },
+            Images = property.Images.Select(i => i.Url).ToList(),
+            Blocks = property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate }).ToList()
+        };
+    }
+
     public async Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId)
     {
         var property = new Property

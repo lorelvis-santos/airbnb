@@ -24,6 +24,13 @@ public static class PropertyEndpoints
             return Results.Ok(ApiResponse<object>.Success(properties));
         });
 
+        // Para obtener por id
+        group.MapGet("/{id}", async (Guid id, IPropertyService service) =>
+        {
+            var property = await service.GetPropertyByIdAsync(id);
+            return Results.Ok(ApiResponse<object>.Success(property));
+        });
+
         // Buscar
         group.MapGet("/search", [Authorize] async (
             [FromQuery] string? city, 
