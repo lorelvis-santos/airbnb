@@ -1,4 +1,5 @@
 // Airbnb.Application/Services/UserService.cs
+using Airbnb.Application.Dtos.User;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Enum;
 using Airbnb.Domain.Exceptions;
@@ -13,6 +14,24 @@ public class UserService : IUserService
     public UserService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
+    }
+
+    public async Task<UserResponseDto> GetUserByIdAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+
+        if (user == null)
+        {
+            throw new AppException(ErrorType.NotFound, "Usuario no encontrado.");
+        }
+
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Roles = [.. user.Roles.Select(r => r)]
+        };
     }
 
     public async Task BecomeHostAsync(Guid userId)

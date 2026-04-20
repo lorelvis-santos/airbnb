@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Airbnb.Application.Dtos.User;
 using Airbnb.Application.Interfaces;
 using Airbnb.Presentation.Extensions;
 using Airbnb.Presentation.Models;
@@ -12,16 +13,20 @@ public static class UserEndpoints
     {
         var group = app.MapGroup("/api/users").WithTags("Users");
 
-        // Fíjate en el atributo [Authorize]: Esto rechaza peticiones sin JWT automáticamente
+        group.MapGet("/me", [Authorize] async (ClaimsPrincipal user, IUserService userService) =>
+        {
+            var userId = user.GetUserId();
+            var userData = await userService.GetUserByIdAsync(userId);
+            
+            return Results.Ok(ApiResponse<UserResponseDto>.Success(userData));
+        });
+
         group.MapPost("/become-host", [Authorize] async (ClaimsPrincipal user, IUserService userService) =>
         {
-            // 1. Extraemos el ID del token de forma segura
             var userId = user.GetUserId();
             
-            // 2. Ejecutamos la lógica
             await userService.BecomeHostAsync(userId);
             
-            // 3. Respondemos
             return Results.Ok(ApiResponse<object>.Success(new 
             { 
                 message = "¡Felicidades! Ahora eres un anfitrión. Por favor, inicia sesión nuevamente para actualizar tus permisos." 
