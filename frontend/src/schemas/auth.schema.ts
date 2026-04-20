@@ -13,13 +13,14 @@ export const registerSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
 });
 
+export const authResponseSchema = z.object({
+  userId: z.uuidv4(),
+  fullName: z.string().trim(),
+  email: z.email(),
+  token: z.string(),
+  roles: z.array(z.string()),
+});
+
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
-
-export type AuthResponse = {
-  userId: string;
-  fullName: string;
-  email: string;
-  token: string;
-  roles: string[];
-};
+export type AuthResponse = z.infer<typeof authResponseSchema>;
