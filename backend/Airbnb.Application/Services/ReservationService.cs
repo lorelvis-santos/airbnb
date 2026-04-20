@@ -1,5 +1,4 @@
-// Airbnb.Application/Services/ReservationService.cs
-using Airbnb.Application.Dtos;
+using Airbnb.Application.Dtos.Reservation;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Entities;
 using Airbnb.Domain.Enum;
@@ -24,7 +23,7 @@ public class ReservationService : IReservationService
         _notificationService = notificationService;
     }
 
-    public async Task<Reservation> CreateReservationAsync(CreateReservationDto dto)
+    public async Task<ReservationResponseDto> CreateReservationAsync(CreateReservationDto dto)
     {
         var property = await _propertyRepo.GetByIdAsync(dto.PropertyId);
 
@@ -66,7 +65,17 @@ public class ReservationService : IReservationService
             $"Tienes una nueva reserva para '{property.Title}' del {dto.CheckIn:d} al {dto.CheckOut:d}."
         );
 
-        return reservation;
+        // Mapeo manual para el retorno limpio
+        return new ReservationResponseDto
+        {
+            Id = reservation.Id,
+            PropertyId = reservation.PropertyId,
+            PropertyTitle = property.Title,
+            CheckIn = reservation.CheckIn,
+            CheckOut = reservation.CheckOut,
+            Status = reservation.Status.ToString(),
+            CreatedAt = reservation.CreatedAt
+        };
     }
 
     public async Task CancelReservationAsync(Guid reservationId, Guid userId)

@@ -1,6 +1,5 @@
-// Airbnb.Presentation/Endpoints/ReservationEndpoints.cs
 using System.Security.Claims;
-using Airbnb.Application.Dtos;
+using Airbnb.Application.Dtos.Reservation;
 using Airbnb.Application.Dtos.Review;
 using Airbnb.Application.Interfaces;
 using Airbnb.Presentation.Extensions;

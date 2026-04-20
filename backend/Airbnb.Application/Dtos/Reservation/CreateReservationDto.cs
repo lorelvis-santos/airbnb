@@ -1,4 +1,4 @@
-namespace Airbnb.Application.Dtos;
+namespace Airbnb.Application.Dtos.Reservation;
 
 public class CreateReservationDto
 {
