@@ -9,3 +9,12 @@ export const useProperties = (pageNumber = 1, pageSize = 12) => {
     staleTime: 1000 * 60 * 10, // Mantenemos los datos frescos por 10 minutos
   });
 };
+
+export const useProperty = (id: string | undefined) => {
+  return useQuery({
+    queryKey: ["property", id],
+    queryFn: () => PropertyAPI.getById(id!),
+    enabled: !!id, // Solo se ejecuta si el ID existe
+    staleTime: 1000 * 60 * 5, // 5 minutos de caché
+  });
+};

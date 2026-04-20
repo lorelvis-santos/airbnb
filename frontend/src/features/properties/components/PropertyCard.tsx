@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 // import { ChevronLeft, ChevronRight, Star, Heart } from "lucide-react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { Property } from "../../../schemas/property.schema";
@@ -18,9 +19,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   // Condición limpia para saber si es nuevo
   const isNew = property.reviewsCount === 0;
 
-  // Función para mover el scroll al presionar las flechas (Desktop)
+  // Función para mover el scroll al presionar las flechas (Desktop) sin loop
   const scrollToIndex = (index: number, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         left: index * scrollRef.current.offsetWidth,
@@ -41,7 +45,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <div className="group cursor-pointer flex flex-col gap-3">
+    <Link
+      to={`/properties/${property.id}`}
+      className="group cursor-pointer flex flex-col gap-3"
+    >
       {/* --- Contenedor del Slider --- */}
       <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-200">
         {/* Pill de "Nuevo" */}
@@ -50,14 +57,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             Nuevo
           </div>
         )}
-
-        {/* Botón de Favorito (Corazón) */}
-        {/* <button
-          onClick={(e) => e.stopPropagation()}
-          className="absolute right-3 top-3 z-10 text-white transition-transform hover:scale-110"
-        >
-          <Heart className="h-6 w-6 fill-black/40 stroke-white stroke-2" />
-        </button> */}
 
         {/* Contenedor con Scroll Snapping (Swipe nativo) */}
         <div
@@ -85,32 +84,29 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Controles Desktop (Ocultos en móvil, visibles en hover en PC) */}
         {hasImages && property.images.length > 1 && (
           <div className="pointer-events-none absolute inset-0 hidden items-center justify-between px-2 opacity-0 transition-opacity sm:flex group-hover:opacity-100">
-            <button
-              onClick={(e) =>
-                scrollToIndex(
-                  currentIndex === 0
-                    ? property.images.length - 1
-                    : currentIndex - 1,
-                  e,
-                )
-              }
-              className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-md transition-transform hover:scale-105 hover:bg-white"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={(e) =>
-                scrollToIndex(
-                  currentIndex === property.images.length - 1
-                    ? 0
-                    : currentIndex + 1,
-                  e,
-                )
-              }
-              className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-md transition-transform hover:scale-105 hover:bg-white"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+            {/* Botón Izquierdo: Solo se muestra si NO estamos en la primera imagen */}
+            {currentIndex > 0 ? (
+              <button
+                onClick={(e) => scrollToIndex(currentIndex - 1, e)}
+                className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-md transition-transform hover:scale-105 hover:bg-white"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            ) : (
+              <div /> // Espaciador para mantener el justify-between
+            )}
+
+            {/* Botón Derecho: Solo se muestra si NO estamos en la última imagen */}
+            {currentIndex < property.images.length - 1 ? (
+              <button
+                onClick={(e) => scrollToIndex(currentIndex + 1, e)}
+                className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-md transition-transform hover:scale-105 hover:bg-white"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            ) : (
+              <div /> // Espaciador para mantener el justify-between
+            )}
           </div>
         )}
 
@@ -136,7 +132,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             {property.city}, {property.province || "RD"}
           </h3>
 
-          {/* Valoración (Rating) - Ya no dice "Nuevo" aquí */}
           {!isNew && (
             <div className="flex items-center gap-1 shrink-0">
               <Star className="h-3.5 w-3.5 fill-gray-900 text-gray-900" />
@@ -159,6 +154,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <span className="font-light text-gray-600">por noche</span>
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

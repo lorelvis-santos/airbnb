@@ -6,6 +6,7 @@ import ConfirmAccount from "../features/auth/ConfirmAccount";
 import CheckEmail from "../features/auth/CheckEmail";
 import MainLayout from "../components/layout/MainLayout";
 import Home from "../features/properties/Home";
+import PropertyDetails from "../features/properties/PropertyDetails";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -34,6 +35,7 @@ export const AppRouter = () => {
         }
       >
         <Route index element={<Home />} />
+        <Route path="/properties/:id" element={<PropertyDetails />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
