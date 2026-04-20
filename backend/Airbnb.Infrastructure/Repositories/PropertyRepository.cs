@@ -13,6 +13,14 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
     {
     }
 
+    public async Task<IEnumerable<Property>> GetAllPropertiesWithDetailsAsync()
+    {
+        return await _dbSet
+            .Include(p => p.Images)
+            .Include(p => p.Host)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId)
     {
         return await _dbSet
@@ -29,7 +37,11 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
         int? capacity
     )
     {
-        var query = _dbSet.AsQueryable();
+        // AQUÍ ESTÁ LA MAGIA: Le decimos a EF Core que incluya las tablas relacionadas
+        var query = _dbSet
+            .Include(p => p.Images)
+            .Include(p => p.Host)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
         {

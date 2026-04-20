@@ -31,6 +31,7 @@ builder.Services.AddProblemDetails();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 // Configuración de Autenticación JWT
@@ -101,6 +102,6 @@ app.UseStaticFiles();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapPropertyEndpoints();
-// app.MapReservationEndpoints(); // Descomenta esto cuando tengas tus ReservationEndpoints listos
+app.MapReservationEndpoints(); 
 
 app.Run();

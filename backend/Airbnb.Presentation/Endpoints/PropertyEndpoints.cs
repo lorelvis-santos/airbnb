@@ -15,6 +15,28 @@ public static class PropertyEndpoints
     {
         var group = app.MapGroup("/api/properties").WithTags("Properties");
 
+        // Endpoints para los guests 
+
+        // Para el home
+        group.MapGet("/", async (IPropertyService service) =>
+        {
+            var properties = await service.GetAllPropertiesAsync();
+            return Results.Ok(ApiResponse<object>.Success(properties));
+        });
+
+        // Buscar
+        group.MapGet("/search", [Authorize] async (
+            [FromQuery] string? city, 
+            [FromQuery] string? province, 
+            [FromQuery] DateTime startDate, 
+            [FromQuery] DateTime endDate, 
+            [FromQuery] int? capacity, 
+            IPropertyService service) =>
+        {
+            var properties = await service.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+            return Results.Ok(ApiResponse<object>.Success(properties));
+        });
+
         // Endpoints solo para anfitriones
 
         group.MapPost("/", [Authorize(Roles = "Host")] async (CreatePropertyDto dto, ClaimsPrincipal user, IPropertyService service) =>
@@ -43,20 +65,6 @@ public static class PropertyEndpoints
         {
             var hostId = user.GetUserId();
             var properties = await service.GetPropertiesByHostAsync(hostId);
-            return Results.Ok(ApiResponse<object>.Success(properties));
-        });
-
-
-        // Endpoints para los guests
-        group.MapGet("/search", [Authorize] async (
-            [FromQuery] string? city, 
-            [FromQuery] string? province, 
-            [FromQuery] DateTime startDate, 
-            [FromQuery] DateTime endDate, 
-            [FromQuery] int? capacity, 
-            IPropertyService service) =>
-        {
-            var properties = await service.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
             return Results.Ok(ApiResponse<object>.Success(properties));
         });
 

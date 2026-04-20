@@ -28,6 +28,27 @@ public class PropertyService : IPropertyService
         _blockRepository = blockRepository;        
     }
 
+    public async Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync()
+    {
+        var properties = await _propertyRepository.GetAllPropertiesWithDetailsAsync();
+
+        var propertyDtos = properties.Select(p => new PropertyResponseDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            City = p.City,
+            PricePerNight = p.PricePerNight,
+            Host = p.Host != null ? new HostSimpleDto 
+            {
+                Id = p.Host.Id,
+                FullName = p.Host.FullName
+            } : null,
+            Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>()
+        }).ToList();
+
+        return propertyDtos;
+    }
+
     public async Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId)
     {
         var property = new Property
@@ -95,7 +116,7 @@ public class PropertyService : IPropertyService
         return await _propertyRepository.GetPropertiesByHostAsync(hostId);
     }
 
-    public async Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
+    public async Task<IEnumerable<PropertyResponseDto>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province,
         DateTime startDate, 
@@ -113,8 +134,25 @@ public class PropertyService : IPropertyService
             throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
         }
 
-        // Si las reglas de negocio pasan, delegamos el filtrado pesado a la Base de Datos
-        return await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+        // Buscamos las entidades en la base de datos
+        var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+
+        // Mapeamos de Entidad (Dominio) a DTO (Aplicación)
+        var propertyDtos = properties.Select(p => new PropertyResponseDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            City = p.City,
+            PricePerNight = p.PricePerNight,
+            Host = p.Host != null ? new HostSimpleDto 
+            {
+                Id = p.Host.Id,
+                FullName = p.Host.FullName
+            } : null,
+            Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>()
+        }).ToList();
+
+        return propertyDtos;
     }
 
     public async Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files)

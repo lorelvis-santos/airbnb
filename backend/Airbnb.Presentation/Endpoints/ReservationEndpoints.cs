@@ -18,7 +18,6 @@ public static class ReservationEndpoints
         // Crear una nueva reserva
         group.MapPost("/", [Authorize] async (CreateReservationDto dto, ClaimsPrincipal user, IReservationService service) =>
         {
-            // Forzamos que el GuestId sea el dueño del token, evitando que alguien falsifique el ID
             dto.GuestId = user.GetUserId();
             
             var reservation = await service.CreateReservationAsync(dto);

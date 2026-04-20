@@ -5,6 +5,7 @@ namespace Airbnb.Application.Interfaces;
 
 public interface IPropertyService
 {
+    Task<IEnumerable<PropertyResponseDto>> GetAllPropertiesAsync();
     Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId);
     Task<Property> UpdatePropertyAsync(Guid propertyId, UpdatePropertyDto dto, Guid hostId);
     Task DeletePropertyAsync(Guid propertyId, Guid hostId);
@@ -12,7 +13,7 @@ public interface IPropertyService
     Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files);
     Task DeletePropertyImageAsync(Guid propertyId, Guid imageId, Guid hostId);
 
-    Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
+    Task<IEnumerable<PropertyResponseDto>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province, 
         DateTime startDate, 
