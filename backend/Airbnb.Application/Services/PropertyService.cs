@@ -144,7 +144,10 @@ public class PropertyService : IPropertyService
         string? province,
         DateTime startDate, 
         DateTime endDate, 
-        int? capacity)
+        int? capacity,
+        decimal? minPrice,
+        decimal? maxPrice
+    )
     {
         // Validaciones básicas de congruencia de fechas
         if (startDate >= endDate)
@@ -158,7 +161,7 @@ public class PropertyService : IPropertyService
         }
 
         // Buscamos las entidades en la base de datos
-        var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+        var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
 
         // Mapeamos de Entidad (Dominio) a DTO (Aplicación)
         var propertyDtos = properties.Select(p => new PropertyResponseDto

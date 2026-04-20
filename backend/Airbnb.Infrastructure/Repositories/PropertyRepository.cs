@@ -43,10 +43,11 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
         string? province,
         DateTime startDate,
         DateTime endDate,
-        int? capacity
+        int? capacity,
+        decimal? minPrice,
+        decimal? maxPrice
     )
     {
-        // AQUÍ ESTÁ LA MAGIA: Le decimos a EF Core que incluya las tablas relacionadas
         var query = _dbSet
             .Include(p => p.Images)
             .Include(p => p.Host)
@@ -65,6 +66,16 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
         if (capacity.HasValue)
         {
             query = query.Where(p => p.Capacity >= capacity.Value);
+        }
+
+        if (minPrice.HasValue)
+        {
+            query = query.Where(p => p.PricePerNight >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            query = query.Where(p => p.PricePerNight <= maxPrice.Value);
         }
 
         query = query.Where(p =>

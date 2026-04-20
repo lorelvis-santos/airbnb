@@ -19,7 +19,10 @@ public interface IPropertyService
         string? province, 
         DateTime startDate, 
         DateTime endDate, 
-        int? capacity);
+        int? capacity,
+        decimal? minPrice,
+        decimal? maxPrice
+    );
 
     Task<PropertyBlock> BlockPropertyDatesAsync(Guid propertyId, Guid hostId, CreatePropertyBlockDto dto);
     Task DeletePropertyBlockAsync(Guid propertyId, Guid blockId, Guid hostId);

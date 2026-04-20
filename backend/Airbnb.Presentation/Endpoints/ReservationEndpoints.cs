@@ -14,6 +14,22 @@ public static class ReservationEndpoints
     {
         var group = app.MapGroup("/api/reservations").WithTags("Reservations");
 
+        // Obtener las reservaciones como Huésped
+        group.MapGet("/my-reservations", [Authorize] async (ClaimsPrincipal user, IReservationService service) =>
+        {
+            var guestId = user.GetUserId();
+            var reservations = await service.GetMyReservationsAsync(guestId);
+            return Results.Ok(ApiResponse<object>.Success(reservations));
+        });
+
+        // Obtener las reservaciones de una propiedad como Anfitrión
+        group.MapGet("/property/{propertyId}", [Authorize(Roles = "Host")] async (Guid propertyId, ClaimsPrincipal user, IReservationService service) =>
+        {
+            var hostId = user.GetUserId();
+            var reservations = await service.GetReservationsByPropertyAsync(propertyId, hostId);
+            return Results.Ok(ApiResponse<object>.Success(reservations));
+        });
+
         // Crear una nueva reserva
         group.MapPost("/", [Authorize] async (CreateReservationDto dto, ClaimsPrincipal user, IReservationService service) =>
         {

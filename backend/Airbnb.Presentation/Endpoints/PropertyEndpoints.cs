@@ -38,9 +38,12 @@ public static class PropertyEndpoints
             [FromQuery] DateTime startDate, 
             [FromQuery] DateTime endDate, 
             [FromQuery] int? capacity, 
-            IPropertyService service) =>
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            IPropertyService service
+        ) =>
         {
-            var properties = await service.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity);
+            var properties = await service.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
             return Results.Ok(ApiResponse<object>.Success(properties));
         });
 

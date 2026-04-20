@@ -13,7 +13,9 @@ public interface IPropertyRepository : IRepository<Property>
         string? province, 
         DateTime startDate, 
         DateTime endDate, 
-        int? capacity
+        int? capacity,
+        decimal? minPrice,
+        decimal? maxPrice
     );
 
     Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId);
