@@ -9,7 +9,7 @@ public class PropertyDetailDto
     public string Province { get; set; } = string.Empty;
     public decimal PricePerNight { get; set; }
     public int Capacity { get; set; }
-    public HostSimpleDto Host { get; set; } = null!;
+    public HostSimpleDto? Host { get; set; } = null;
     public List<string> Images { get; set; } = new();
     public List<PropertyBlockDto> Blocks { get; set; } = new();
 }

@@ -64,7 +64,9 @@ public class PropertyService : IPropertyService
             Province = property.Province,
             PricePerNight = property.PricePerNight,
             Capacity = property.Capacity,
-            Host = new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName },
+            Host = property.Host != null ? 
+                new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName } :
+                null,
             Images = property.Images.Select(i => i.Url).ToList(),
             Blocks = property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate }).ToList()
         };
