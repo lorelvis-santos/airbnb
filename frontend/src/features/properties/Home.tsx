@@ -1,6 +1,12 @@
 import { Search, MapPin, Calendar, Users } from "lucide-react";
+import { useProperties } from "../../hooks/properties/useQueries";
+import PropertyCard from "./components/PropertyCard";
 
 export default function Home() {
+  // Consumimos la API usando nuestro Hook. Pedimos la primera página con 12 elementos.
+  const { data: response, isLoading } = useProperties(1, 12);
+  const properties = response?.data.items || [];
+
   return (
     <div className="bg-white">
       {/* --- HERO SECTION & BUSCADOR --- */}
@@ -75,25 +81,43 @@ export default function Home() {
       </div>
 
       {/* --- SECCIÓN DE RESULTADOS / CATÁLOGO --- */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-2xl font-bold text-gray-900 text-left mb-6">
           Explorar propiedades
         </h2>
-        {/* Aquí irá el Grid de PropertyCards en la Fase 3 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="h-64 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500">
-            Propiedad 1
+
+        {isLoading ? (
+          // Skeletons de carga
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse flex flex-col gap-3">
+                <div className="aspect-square rounded-xl bg-gray-200" />
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <div className="h-4 w-1/2 bg-gray-200 rounded" />
+                    <div className="h-4 w-12 bg-gray-200 rounded" />
+                  </div>
+                  <div className="h-3 w-3/4 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 w-1/3 bg-gray-200 rounded mt-2" />
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="h-64 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500">
-            Propiedad 2
+        ) : properties.length === 0 ? (
+          // Estado Vacío
+          <div className="py-12 text-center text-gray-500">
+            <p className="text-lg">
+              No se encontraron propiedades en este momento.
+            </p>
           </div>
-          <div className="h-64 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500">
-            Propiedad 3
+        ) : (
+          // Tarjetas reales
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 text-left">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
           </div>
-          <div className="h-64 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500">
-            Propiedad 4
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
