@@ -4,6 +4,7 @@ using Airbnb.Domain.Entities;
 using Airbnb.Domain.Enum;
 using Airbnb.Domain.Exceptions;
 using Airbnb.Domain.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace Airbnb.Application.Services;
 
@@ -13,18 +14,21 @@ public class AuthService : IAuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenProvider _tokenProvider;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenProvider tokenProvider,
-        IEmailService emailService
+        IEmailService emailService,
+        IConfiguration configuration
     ) 
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenProvider = tokenProvider;
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async Task RegisterAsync(RegisterDto dto)
@@ -58,13 +62,18 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
 
-        // Llamada real al servicio de correo electrónico en segundo plano
-
-        // TODO: Refinar el correo, para que sea mas completo o trabajar mediante confirmacion por codigo.
-        string subject = "Confirma tu cuenta en la plataforma";
-        string body = $"Hola {user.FullName},\n\nGracias por registrarte. Para completar tu registro y poder iniciar sesión, por favor confirma tu cuenta utilizando el siguiente token:\n\n{confirmationToken}\n\nEste token expirará en 120 minutos.";
+        // 1. Obtenemos la URL base del frontend desde appsettings.json (con fallback local)
+        var frontendUrl = _configuration["FrontendSettings:BaseUrl"] ?? "http://localhost:5173";
         
-        await _emailService.SendEmailAsync(user.Email, subject, body);
+        // 2. Construimos el enlace codificando solo el token
+        var confirmLink = $"{frontendUrl}/confirm?token={Uri.EscapeDataString(confirmationToken)}";
+
+        // 3. Generamos la plantilla HTML elegante
+        string subject = "Confirma tu cuenta en Airbnb Clone";
+        string htmlBody = GenerateConfirmationEmailHtml(user.FullName, confirmLink);
+        
+        // 4. Enviamos el correo con HTML
+        await _emailService.SendEmailAsync(user.Email, subject, htmlBody);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -119,5 +128,54 @@ public class AuthService : IAuthService
         user.Token = null;
         
         await _userRepository.UpdateAsync(user);
+    }
+
+    // Método privado para generar el HTML
+    // Método privado para generar el HTML
+    private string GenerateConfirmationEmailHtml(string userName, string confirmationLink)
+    {
+        return $@"
+        <!DOCTYPE html>
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Confirmación de Cuenta</title>
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 0; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }}
+                .header {{ background-color: #2563eb; color: #ffffff; padding: 30px; text-align: center; }}
+                .header h1 {{ margin: 0; font-size: 24px; }}
+                .content {{ padding: 40px 30px; color: #374151; line-height: 1.6; }}
+                .content h2 {{ color: #111827; margin-top: 0; }}
+                .button-container {{ text-align: center; margin: 30px 0; }}
+                .button {{ background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; }}
+                .button:hover {{ background-color: #1d4ed8; }}
+                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; }}
+                .fallback-link {{ word-break: break-all; color: #2563eb; font-size: 13px; }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Bienvenido a la Plataforma</h1>
+                </div>
+                <div class='content'>
+                    <h2>¡Hola, {userName}!</h2>
+                    <p>Gracias por registrarte. Para completar tu registro y poder iniciar sesión, necesitamos que confirmes tu dirección de correo electrónico. Este enlace es válido por 120 minutos.</p>
+                    
+                    <div class='button-container'>
+                        <a href='{confirmationLink}' class='button'>Confirmar mi cuenta</a>
+                    </div>
+                    
+                    <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+                    <p class='fallback-link'>{confirmationLink}</p>
+                </div>
+                <div class='footer'>
+                    <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
     }
 }

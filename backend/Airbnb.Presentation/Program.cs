@@ -76,6 +76,16 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -85,8 +95,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseExceptionHandler(); // Activamos el manejador de excepciones
+app.UseCors("AllowFrontend");
 
 app.MapGet("/api/status", () =>
 {
@@ -94,12 +104,13 @@ app.MapGet("/api/status", () =>
 });
 
 // Activamos los middlewares de seguridad - El orden importa, por eso puse api/status antes para saber si esta ok
+app.MapAuthEndpoints();
+
 app.UseAuthentication(); 
 app.UseAuthorization();  
 app.UseStaticFiles();
 
 // Registramos los Endpoints
-app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapPropertyEndpoints();
 app.MapReservationEndpoints(); 

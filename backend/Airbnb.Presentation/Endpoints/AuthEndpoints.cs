@@ -26,7 +26,7 @@ public static class AuthEndpoints
         });
 
         // Confirmar cuenta
-        group.MapPost("/confirm", async ([FromQuery] string token, IAuthService authService) =>
+        group.MapGet("/confirm", async ([FromQuery] string token, IAuthService authService) =>
         {
             await authService.ConfirmAccountAsync(token);
             return Results.Ok(ApiResponse<object>.Success(new { message = "Cuenta confirmada exitosamente. Ya puedes iniciar sesión." }));
