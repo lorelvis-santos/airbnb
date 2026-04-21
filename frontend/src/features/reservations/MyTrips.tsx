@@ -4,13 +4,17 @@ import { es } from "date-fns/locale";
 import { Loader2, MapPin, Calendar, XCircle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMyReservations } from "../../hooks/reservations/useQueries";
-import { useCancelReservation } from "../../hooks/reservations/useMutations";
+import {
+  useCancelReservation,
+  useCompleteReservation,
+} from "../../hooks/reservations/useMutations";
 import { AxiosError } from "axios";
 import type { BackendResponse } from "../../types/api.types";
 
 export default function MyTrips() {
   const { data: response, isLoading, isError } = useMyReservations();
   const cancelMutation = useCancelReservation();
+  const completeMutation = useCompleteReservation(); // <-- NUEVO HOOK
 
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<{ id: string; msg: string } | null>(
@@ -93,12 +97,20 @@ export default function MyTrips() {
           </p>
         </div>
       ) : (
-        /* --- NUEVO GRID: 1 col en móvil, 2 en tablet, 3 en PC --- */
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {reservations.map((reservation) => {
             const isCancellingThis =
               cancelMutation.isPending &&
               cancelMutation.variables === reservation.id;
+
+            const isCompletingThis =
+              completeMutation.isPending &&
+              completeMutation.variables === reservation.id;
+
+            // Lógica de fechas: ¿Ya pasó el checkOut?
+            const isPastCheckout = new Date(reservation.checkOut) < new Date();
+            const canComplete =
+              reservation.status === "Confirmed" && isPastCheckout;
 
             return (
               <div
@@ -143,49 +155,67 @@ export default function MyTrips() {
                 {/* --- Parte Inferior (Acciones) --- */}
                 <div className="mt-auto border-t border-gray-100 pt-4">
                   {reservation.status === "Confirmed" && (
-                    <>
-                      {confirmingId === reservation.id ? (
-                        <div className="flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
-                          <span className="text-xs font-semibold text-red-600 text-center">
-                            ¿Seguro que deseas cancelar?
-                          </span>
-                          {/* Botones 50/50 dentro del Grid */}
-                          <div className="flex gap-2 w-full">
-                            <button
-                              onClick={() => setConfirmingId(null)}
-                              disabled={isCancellingThis}
-                              className="flex-1 rounded-lg bg-gray-100 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 transition disabled:opacity-50"
-                            >
-                              No
-                            </button>
-                            <button
-                              onClick={() => handleCancel(reservation.id)}
-                              disabled={isCancellingThis}
-                              className="flex flex-1 items-center justify-center rounded-lg bg-red-600 py-2 text-sm font-bold text-white hover:bg-red-700 transition disabled:opacity-50"
-                            >
-                              {isCancellingThis ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                "Sí, cancelar"
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
+                    <div className="flex flex-col gap-2">
+                      {canComplete ? (
                         <button
-                          onClick={() => setConfirmingId(reservation.id)}
-                          className="w-full rounded-lg border border-red-200 bg-red-50 py-2 text-sm font-bold text-red-600 hover:bg-red-100 transition"
+                          onClick={() =>
+                            completeMutation.mutate(reservation.id)
+                          }
+                          disabled={isCompletingThis}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 py-2 text-sm font-bold text-white hover:bg-green-700 transition disabled:opacity-50 shadow-sm"
                         >
-                          Cancelar Reserva
+                          {isCompletingThis ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                          Completar Viaje
                         </button>
-                      )}
+                      ) : (
+                        <>
+                          {confirmingId === reservation.id ? (
+                            <div className="flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
+                              <span className="text-xs font-semibold text-red-600 text-center">
+                                ¿Seguro que deseas cancelar?
+                              </span>
+                              <div className="flex gap-2 w-full">
+                                <button
+                                  onClick={() => setConfirmingId(null)}
+                                  disabled={isCancellingThis}
+                                  className="flex-1 rounded-lg bg-gray-100 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 transition disabled:opacity-50"
+                                >
+                                  No
+                                </button>
+                                <button
+                                  onClick={() => handleCancel(reservation.id)}
+                                  disabled={isCancellingThis}
+                                  className="flex flex-1 items-center justify-center rounded-lg bg-red-600 py-2 text-sm font-bold text-white hover:bg-red-700 transition disabled:opacity-50"
+                                >
+                                  {isCancellingThis ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Sí, cancelar"
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmingId(reservation.id)}
+                              className="w-full rounded-lg border border-red-200 bg-red-50 py-2 text-sm font-bold text-red-600 hover:bg-red-100 transition"
+                            >
+                              Cancelar Reserva
+                            </button>
+                          )}
 
-                      {errorMsg?.id === reservation.id && (
-                        <p className="text-xs font-semibold text-red-500 mt-2 text-center">
-                          {errorMsg.msg}
-                        </p>
+                          {errorMsg?.id === reservation.id && (
+                            <p className="text-xs font-semibold text-red-500 mt-2 text-center">
+                              {errorMsg.msg}
+                            </p>
+                          )}
+                        </>
                       )}
-                    </>
+                    </div>
                   )}
 
                   {reservation.status === "Completed" && (

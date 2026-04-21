@@ -18,3 +18,15 @@ export const useCancelReservation = () => {
     },
   });
 };
+
+export const useCompleteReservation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => ReservationAPI.completeReservation(id),
+    onSuccess: () => {
+      // Invalida las consultas de reservas para Huésped y Anfitrión
+      queryClient.invalidateQueries({ queryKey: ["my-trips"] });
+      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+    },
+  });
+};

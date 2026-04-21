@@ -129,7 +129,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       <div>
         <div className="flex items-start justify-between">
           <h3 className="font-semibold text-gray-900 truncate pr-2">
-            {property.city}, {property.province || "RD"}
+            {property.title}
           </h3>
 
           {!isNew && (
@@ -142,7 +142,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        <p className="text-sm text-gray-500 truncate">{property.title}</p>
+        <p className="text-sm text-gray-500 truncate">
+          {property.city}, {property.province || "RD"}
+        </p>
 
         <p className="mt-1 text-sm text-gray-900">
           <span className="font-semibold">

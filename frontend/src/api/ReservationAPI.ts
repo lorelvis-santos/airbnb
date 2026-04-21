@@ -31,4 +31,11 @@ export const ReservationAPI = {
     );
     return response.data;
   },
+
+  completeReservation: async (id: string): Promise<BackendResponse<null>> => {
+    const response = await api.patch<BackendResponse<null>>(
+      `/reservations/${id}/complete`,
+    );
+    return response.data;
+  },
 };
