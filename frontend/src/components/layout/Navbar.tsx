@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, UserCircle, Tent } from "lucide-react";
+import { Menu, UserCircle, Tent, Bell } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useUser } from "../../hooks/user/useQueries";
+import { useUnreadCount } from "../../hooks/notifications/useQueries"; // Añadimos el hook
 
 export default function Navbar() {
   const { isHost, logout } = useAuthStore();
@@ -10,6 +11,9 @@ export default function Navbar() {
 
   const { data: userResponse, isLoading } = useUser();
   const user = userResponse?.data;
+
+  const { data: countResponse } = useUnreadCount();
+  const unreadCount = countResponse?.data?.unreadCount || 0;
 
   // Estado para el menú desplegable
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,6 +65,20 @@ export default function Navbar() {
               <button className="hidden rounded-full px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50 lg:block">
                 Pon tu espacio en Airbnb
               </button>
+            )}
+
+            {user && (
+              <Link
+                to="/notifications"
+                className="relative mr-2 p-2 text-gray-600 hover:text-gray-900 transition"
+              >
+                <Bell className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
             )}
 
             {/* Menú de Usuario con Dropdown */}
