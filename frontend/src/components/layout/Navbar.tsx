@@ -92,7 +92,7 @@ export default function Navbar() {
               >
                 <Tent className="h-8 w-8" strokeWidth={2.5} />
                 <span className="hidden text-xl font-bold md:block">
-                  Airbnb Clone
+                  Airbnb
                 </span>
               </Link>
             </div>

@@ -10,6 +10,14 @@ export const propertyImageSchema = z.object({
   url: z.string(),
 });
 
+export const propertyReviewSchema = z.object({
+  id: z.uuidv4(),
+  guestName: z.string(),
+  rating: z.number(),
+  comment: z.string(),
+  createdAt: z.string(),
+});
+
 export const propertyResponseSchema = z.object({
   id: z.uuidv4(),
   title: z.string(),
@@ -50,6 +58,7 @@ export const propertyDetailSchema = z.object({
   averageRating: z.number(),
   reviewsCount: z.number(),
   reservations: z.array(propertyReservationSchema).optional(), // Utiliza el esquema extraído
+  reviews: z.array(propertyReviewSchema).optional(),
 });
 
 export const propertyFormSchema = z.object({
@@ -69,6 +78,7 @@ export const propertyFormSchema = z.object({
 // 3. Se exportan los tipos requeridos
 export type PropertyFormData = z.infer<typeof propertyFormSchema>;
 export type PropertyDetail = z.infer<typeof propertyDetailSchema>;
+export type PropertyReview = z.infer<typeof propertyReviewSchema>;
 export type Property = z.infer<typeof propertyResponseSchema>;
 export type PropertyBlock = z.infer<typeof propertyBlockSchema>;
 export type PropertyReservation = z.infer<typeof propertyReservationSchema>;

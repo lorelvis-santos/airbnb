@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { Star, Share, Heart, Image as ImageIcon } from "lucide-react";
 import { useProperty } from "../../hooks/properties/useQueries"; // Ajusta si el nombre de tu archivo es distinto
 import BookingWidget from "./components/BookingWidget";
+import { format } from "date-fns/format";
+import { es } from "date-fns/locale";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -149,12 +151,66 @@ export default function PropertyDetails() {
             </p>
           </div>
 
-          <div className="py-8 border-b border-gray-200">
+          <div className="py-8">
             <h3 className="text-lg font-semibold mb-4">Acerca de este lugar</h3>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
               {property.description ||
                 "El anfitrión no ha proporcionado una descripción detallada aún."}
             </p>
+          </div>
+
+          <div className="mt-12 border-t border-gray-200 pt-10">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+              <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+              {property.averageRating > 0
+                ? property.averageRating.toFixed(1)
+                : "Nuevo"}
+              <span className="text-gray-500 text-lg font-normal">
+                · {property.reviewsCount} reseñas
+              </span>
+            </h2>
+
+            {property.reviews && property.reviews.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {property.reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="bg-gray-50 p-6 rounded-2xl border border-gray-100"
+                  >
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">
+                        {review.guestName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">
+                          {review.guestName}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {format(new Date(review.createdAt), "MMMM yyyy", {
+                            locale: es,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 mb-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${review.rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">
+                Aún no hay reseñas para este alojamiento.
+              </p>
+            )}
           </div>
         </div>
 
