@@ -1,15 +1,16 @@
 import { z } from "zod";
 
 export const createReservationSchema = z.object({
-  propertyId: z.uuidv4,
+  propertyId: z.uuidv4(),
   checkIn: z.string(), // Formato ISO
   checkOut: z.string(), // Formato ISO
 });
 
 export const reservationResponseSchema = z.object({
-  id: z.uuidv4,
-  propertyId: z.uuidv4,
-  guestId: z.uuidv4,
+  id: z.uuidv4(),
+  propertyId: z.uuidv4(),
+  propertyTitle: z.string(),
+  guestId: z.uuidv4(),
   checkIn: z.string(),
   checkOut: z.string(),
   totalPrice: z.number(),

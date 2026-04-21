@@ -15,4 +15,20 @@ export const ReservationAPI = {
     );
     return response.data;
   },
+
+  getMyReservations: async (): Promise<
+    BackendResponse<ReservationResponse[]>
+  > => {
+    const response = await api.get<BackendResponse<ReservationResponse[]>>(
+      "/reservations/my-reservations",
+    );
+    return response.data;
+  },
+
+  cancel: async (id: string): Promise<BackendResponse<{ message: string }>> => {
+    const response = await api.patch<BackendResponse<{ message: string }>>(
+      `/reservations/${id}/cancel`,
+    );
+    return response.data;
+  },
 };
