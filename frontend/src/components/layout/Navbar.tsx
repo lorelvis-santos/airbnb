@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Menu,
   UserCircle,
@@ -18,6 +19,7 @@ import { useBecomeHost } from "../../hooks/user/useMutations";
 export default function Navbar() {
   const { isHost, logout } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: userResponse, isLoading } = useUser();
   const user = userResponse?.data;
@@ -47,6 +49,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
+    queryClient.clear();
     logout();
     navigate("/login");
   };
@@ -63,9 +66,10 @@ export default function Navbar() {
     becomeHostMutation.mutate(undefined, {
       onSuccess: () => {
         setModalState("success");
-        // Redirección automática elegante después de 3.5 segundos
+        // Redirección automática después de 3.5 segundos
         setTimeout(() => {
           setModalState("closed");
+          queryClient.clear();
           logout();
           navigate("/login");
         }, 3500);
