@@ -94,7 +94,11 @@ public class PropertyService : IPropertyService
                     Id = i.Id, 
                     Url = i.Url 
                 })],
-            Blocks = [.. property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate })],
+            Blocks = [.. property.Blocks.Select(b => new PropertyBlockDto {
+                Id = b.Id,
+                StartDate = b.StartDate, 
+                EndDate = b.EndDate 
+            })],
             Reservations = [.. property.Reservations
                 .Where(r => r.Status == ReservationStatus.Confirmed)
                 .Select(r => new ReservationDateDto
