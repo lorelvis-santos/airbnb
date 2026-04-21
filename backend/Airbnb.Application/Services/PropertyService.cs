@@ -43,6 +43,7 @@ public class PropertyService : IPropertyService
                 City = p.City,
                 Province = p.Province,
                 PricePerNight = p.PricePerNight,
+                Capacity = p.Capacity,
                 Host = p.Host != null ? new HostSimpleDto 
                 {
                     Id = p.HostId,
@@ -96,20 +97,39 @@ public class PropertyService : IPropertyService
         };
     }
 
-    public async Task<PagedResult<Property>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12)
+    public async Task<PagedResult<PropertyResponseDto>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12)
     {
         // Asumiendo que GetPropertiesByHostAsync del repo devuelve un IEnumerable
         var properties = await _propertyRepository.GetPropertiesByHostAsync(hostId);
         
+        // Contamos el total para la metadata de la paginación
         var totalCount = properties.Count();
-        var pagedItems = properties
+
+        // Paginamos en memoria y Mapeamos a DTO
+        var propertyDtos = properties
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToList();
+            .Select(p => new PropertyResponseDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                City = p.City,
+                Province = p.Province,
+                PricePerNight = p.PricePerNight,
+                Capacity = p.Capacity,
+                Host = p.Host != null ? new HostSimpleDto 
+                {
+                    Id = p.Host.Id,
+                    FullName = p.Host.FullName
+                } : null,
+                Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>(),
+                AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
+            }).ToList();
 
-        return new PagedResult<Property>
+        return new PagedResult<PropertyResponseDto>
         {
-            Items = pagedItems,
+            Items = propertyDtos,
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize
@@ -156,6 +176,7 @@ public class PropertyService : IPropertyService
                 City = p.City,
                 Province = p.Province,
                 PricePerNight = p.PricePerNight,
+                Capacity = p.Capacity,
                 Host = p.Host != null ? new HostSimpleDto 
                 {
                     Id = p.Host.Id,

@@ -7,6 +7,7 @@ public class PropertyResponseDto
     public string City { get; set; } = string.Empty;
     public string Province { get; set; } = string.Empty;
     public decimal PricePerNight { get; set; }
+    public int Capacity { get; set; }
     
     public HostSimpleDto? Host { get; set; } = null;
     public List<string> Images { get; set; } = [];

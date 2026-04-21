@@ -34,6 +34,10 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
     public async Task<IEnumerable<Property>> GetPropertiesByHostAsync(Guid hostId)
     {
         return await _dbSet
+            .Include(p => p.Images)
+            .Include(p => p.Host)
+            .Include(p => p.Blocks)
+            .Include(p => p.Reservations)
             .Where(p => p.HostId == hostId)
             .OrderByDescending(p => p.Id) // Opcional: ordenar por creación
             .ToListAsync();

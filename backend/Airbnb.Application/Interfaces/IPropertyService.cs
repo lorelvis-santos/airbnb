@@ -11,7 +11,7 @@ public interface IPropertyService
     Task<Property> CreatePropertyAsync(CreatePropertyDto dto, Guid hostId);
     Task<Property> UpdatePropertyAsync(Guid propertyId, UpdatePropertyDto dto, Guid hostId);
     Task DeletePropertyAsync(Guid propertyId, Guid hostId);
-    Task<PagedResult<Property>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12);
+    Task<PagedResult<PropertyResponseDto>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12);
     Task<List<string>> UploadPropertyImagesAsync(Guid propertyId, Guid hostId, List<(Stream Content, string Extension)> files);
     Task DeletePropertyImageAsync(Guid propertyId, Guid imageId, Guid hostId);
     Task<PagedResult<PropertyResponseDto>> SearchAvailablePropertiesAsync(
