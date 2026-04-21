@@ -61,4 +61,46 @@ export const PropertyAPI = {
     );
     return response.data;
   },
+
+  uploadImages: async (
+    id: string,
+    files: File[],
+  ): Promise<BackendResponse<{ urls: string[] }>> => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+
+    const response = await api.post<BackendResponse<{ urls: string[] }>>(
+      `/properties/${id}/images`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data;
+  },
+
+  deleteImage: async (
+    propertyId: string,
+    imageId: string,
+  ): Promise<BackendResponse<null>> => {
+    const response = await api.delete<BackendResponse<null>>(
+      `/properties/${propertyId}/images/${imageId}`,
+    );
+    return response.data;
+  },
+
+  blockDates: async (
+    id: string,
+    data: { startDate: string; endDate: string },
+  ) => {
+    const response = await api.post(`/properties/${id}/blocks`, data);
+    return response.data;
+  },
+
+  unblockDates: async (propertyId: string, blockId: string) => {
+    const response = await api.delete(
+      `/properties/${propertyId}/blocks/${blockId}`,
+    );
+    return response.data;
+  },
 };

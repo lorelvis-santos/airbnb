@@ -11,6 +11,8 @@ import MyTrips from "../features/reservations/MyTrips";
 import Notifications from "../features/notifications/Notifications";
 import PropertyForm from "../features/host/PropertyForm";
 import HostDashboard from "../features/host/HostDashboard";
+import PropertyImages from "../features/host/PropertyImages";
+import PropertyCalendar from "../features/host/PropertyCalendar";
 
 // 1. Bloquea a los que NO han iniciado sesión (Para rutas privadas)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -108,6 +110,22 @@ export const AppRouter = () => {
           element={
             <HostRoute>
               <PropertyForm />
+            </HostRoute>
+          }
+        />
+        <Route
+          path="host/properties/:id/images"
+          element={
+            <HostRoute>
+              <PropertyImages />
+            </HostRoute>
+          }
+        />
+        <Route
+          path="host/properties/:id/calendar"
+          element={
+            <HostRoute>
+              <PropertyCalendar />
             </HostRoute>
           }
         />

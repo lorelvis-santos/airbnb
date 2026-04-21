@@ -5,6 +5,11 @@ export const hostSimpleSchema = z.object({
   fullName: z.string(),
 });
 
+export const propertyImageSchema = z.object({
+  id: z.uuidv4(),
+  url: z.string(),
+});
+
 export const propertyResponseSchema = z.object({
   id: z.uuidv4(),
   title: z.string(),
@@ -13,37 +18,38 @@ export const propertyResponseSchema = z.object({
   pricePerNight: z.number(),
   capacity: z.number(),
   host: hostSimpleSchema.nullable(),
-  images: z.array(z.string()),
+  images: z.array(propertyImageSchema),
   averageRating: z.number(),
   reviewsCount: z.number(),
 });
 
+// 1. Se añade el ID al esquema de bloques
 export const propertyBlockSchema = z.object({
+  id: z.uuidv4(),
   startDate: z.string(), // Viene como ISO string "2026-05-01T00:00:00"
   endDate: z.string(),
+});
+
+// 2. Se extrae el esquema de reservaciones
+export const propertyReservationSchema = z.object({
+  checkIn: z.string(),
+  checkOut: z.string(),
 });
 
 export const propertyDetailSchema = z.object({
   id: z.uuidv4(),
   title: z.string(),
-  description: z.string().nullable(), // Puede que algunas no tengan descripción aún
+  description: z.string().nullable(),
   city: z.string(),
   province: z.string(),
   pricePerNight: z.number(),
   capacity: z.number(),
   host: hostSimpleSchema.nullable(),
-  images: z.array(z.string()),
-  blocks: z.array(propertyBlockSchema),
+  images: z.array(propertyImageSchema),
+  blocks: z.array(propertyBlockSchema), // Utiliza el esquema actualizado
   averageRating: z.number(),
   reviewsCount: z.number(),
-  reservations: z
-    .array(
-      z.object({
-        checkIn: z.string(),
-        checkOut: z.string(),
-      }),
-    )
-    .optional(),
+  reservations: z.array(propertyReservationSchema).optional(), // Utiliza el esquema extraído
 });
 
 export const propertyFormSchema = z.object({
@@ -60,6 +66,9 @@ export const propertyFormSchema = z.object({
     .max(50, "Capacidad máxima excedida"),
 });
 
+// 3. Se exportan los tipos requeridos
 export type PropertyFormData = z.infer<typeof propertyFormSchema>;
 export type PropertyDetail = z.infer<typeof propertyDetailSchema>;
 export type Property = z.infer<typeof propertyResponseSchema>;
+export type PropertyBlock = z.infer<typeof propertyBlockSchema>;
+export type PropertyReservation = z.infer<typeof propertyReservationSchema>;

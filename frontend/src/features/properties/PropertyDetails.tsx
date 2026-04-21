@@ -76,7 +76,7 @@ export default function PropertyDetails() {
         ) : images.length === 1 ? (
           // CASO 2: Solo 1 Imagen (Ocupa todo)
           <img
-            src={`${baseUrl}${images[0]}`}
+            src={`${baseUrl}${images[0].url}`}
             className="h-full w-full object-cover cursor-pointer hover:brightness-95 transition"
             alt="Principal"
           />
@@ -84,12 +84,12 @@ export default function PropertyDetails() {
           // CASO 3: 2 Imágenes (Mitad y mitad)
           <div className="grid h-full grid-cols-2 gap-2">
             <img
-              src={`${baseUrl}${images[0]}`}
+              src={`${baseUrl}${images[0].url}`}
               className="h-full w-full object-cover cursor-pointer hover:brightness-95 transition"
               alt="Foto 1"
             />
             <img
-              src={`${baseUrl}${images[1]}`}
+              src={`${baseUrl}${images[1].url}`}
               className="h-full w-full object-cover cursor-pointer hover:brightness-95 transition"
               alt="Foto 2"
             />
@@ -99,7 +99,7 @@ export default function PropertyDetails() {
           <div className="grid h-full grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2">
             <div className="md:col-span-2 md:row-span-2 overflow-hidden">
               <img
-                src={`${baseUrl}${images[0]}`}
+                src={`${baseUrl}${images[0].url}`}
                 className="h-full w-full object-cover hover:brightness-90 transition cursor-pointer"
                 alt="Principal"
               />
@@ -112,7 +112,7 @@ export default function PropertyDetails() {
               >
                 {img ? (
                   <img
-                    src={`${baseUrl}${img}`}
+                    src={`${baseUrl}${img.url}`}
                     className="h-full w-full object-cover hover:brightness-90 transition cursor-pointer"
                     alt={`Foto ${index + 1}`}
                   />

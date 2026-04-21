@@ -68,7 +68,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             property.images.map((img, i) => (
               <div key={i} className="min-w-full snap-center relative">
                 <img
-                  src={`${baseUrl}${img}`}
+                  src={`${baseUrl}${img.url}`}
                   alt={`Imagen de ${property.title}`}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
