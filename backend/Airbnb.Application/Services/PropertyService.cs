@@ -85,7 +85,14 @@ public class PropertyService : IPropertyService
                 new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName } :
                 null,
             Images = property.Images.Select(i => i.Url).ToList(),
-            Blocks = property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate }).ToList()
+            Blocks = [.. property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate })],
+            Reservations = [.. property.Reservations
+                .Where(r => r.Status == ReservationStatus.Confirmed)
+                .Select(r => new ReservationDateDto
+                {
+                    CheckIn = r.CheckIn,
+                    CheckOut = r.CheckOut
+                })]
         };
     }
 

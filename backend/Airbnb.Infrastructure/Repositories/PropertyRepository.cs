@@ -27,6 +27,7 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             .Include(p => p.Images)
             .Include(p => p.Host)
             .Include(p => p.Blocks)
+            .Include(p => p.Reservations)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 

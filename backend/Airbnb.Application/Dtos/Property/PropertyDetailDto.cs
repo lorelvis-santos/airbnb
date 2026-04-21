@@ -11,7 +11,14 @@ public class PropertyDetailDto
     public int Capacity { get; set; }
     public HostSimpleDto? Host { get; set; } = null;
     public List<string> Images { get; set; } = new();
-    public List<PropertyBlockDto> Blocks { get; set; } = new();
+    public List<PropertyBlockDto> Blocks { get; set; } = [];
+    public List<ReservationDateDto> Reservations { get; set; } = [];
+}
+
+public class ReservationDateDto
+{
+    public DateTime CheckIn { get; set; }
+    public DateTime CheckOut { get; set; }
 }
 
 public class PropertyBlockDto

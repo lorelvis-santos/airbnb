@@ -103,18 +103,12 @@ public class ReservationService : IReservationService
 
             await _reservationRepo.AddAsync(reservation);
 
-            await _notificationService.SendNotificationAsync(
+            await _notificationService.SendNewReservationNotificationsAsync(
                 property.HostId, 
-                $"Tienes una nueva reserva para '{property.Title}' del {dto.CheckIn:d} al {dto.CheckOut:d}.",
-                property.Title,
-                "Confirmada"
-            );
-
-            await _notificationService.SendNotificationAsync(
                 dto.GuestId, 
-                $"¡Tu reserva en '{property.Title}' ha sido confirmada del {dto.CheckIn:d} al {dto.CheckOut:d}!",
-                property.Title,
-                "Confirmada"
+                property.Title, 
+                dto.CheckIn, 
+                dto.CheckOut
             );
 
             return new ReservationResponseDto

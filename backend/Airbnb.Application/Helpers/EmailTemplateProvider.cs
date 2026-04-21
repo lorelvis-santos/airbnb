@@ -49,6 +49,37 @@ public static class EmailTemplateProvider
         </html>";
     }
 
+    public static string GetHostNewReservationEmail(string hostName, string guestName, string propertyTitle, DateTime checkIn, DateTime checkOut)
+    {
+        return $@"
+        <div style='font-family: sans-serif; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px;'>
+            <h2 style='color: #2563eb;'>¡Tienes una nueva reserva!</h2>
+            <p>Hola <b>{hostName}</b>,</p>
+            <p>Buenas noticias: <b>{guestName}</b> ha reservado tu propiedad <b>{propertyTitle}</b>.</p>
+            <div style='background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                <p style='margin: 5px 0;'><b>Llegada:</b> {checkIn:dd/MM/yyyy}</p>
+                <p style='margin: 5px 0;'><b>Salida:</b> {checkOut:dd/MM/yyyy}</p>
+            </div>
+            <p>Puedes gestionar esta reserva desde tu panel de anfitrión.</p>
+        </div>";
+    }
+
+    // Plantilla específica para el Huésped (Confirmación)
+    public static string GetGuestConfirmationEmail(string guestName, string propertyTitle, DateTime checkIn, DateTime checkOut)
+    {
+        return $@"
+        <div style='font-family: sans-serif; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px;'>
+            <h2 style='color: #10b981;'>¡Tu viaje está confirmado!</h2>
+            <p>Hola <b>{guestName}</b>,</p>
+            <p>Todo listo para tu estancia en <b>{propertyTitle}</b>.</p>
+            <div style='background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                <p style='margin: 5px 0;'><b>Check-in:</b> {checkIn:dd/MM/yyyy}</p>
+                <p style='margin: 5px 0;'><b>Check-out:</b> {checkOut:dd/MM/yyyy}</p>
+            </div>
+            <p>¡Esperamos que disfrutes tu viaje!</p>
+        </div>";
+    }
+
     public static string GetReservationStatusEmail(string userName, string propertyTitle, string status)
     {
         var color = status == "Confirmada" ? "#10b981" : "#ef4444";

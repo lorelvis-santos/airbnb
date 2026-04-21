@@ -1,4 +1,3 @@
-// Airbnb.Application/Services/NotificationService.cs
 using Airbnb.Application.Helpers;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Entities;
@@ -22,20 +21,35 @@ public class NotificationService : INotificationService
         _userRepository = userRepository;
     }
 
+    // Maneja las notificaciones al momento de crear una reserva
+    public async Task SendNewReservationNotificationsAsync(Guid hostId, Guid guestId, string propertyTitle, DateTime checkIn, DateTime checkOut)
+    {
+        var host = await _userRepository.GetByIdAsync(hostId);
+        var guest = await _userRepository.GetByIdAsync(guestId);
+
+        if (host == null || guest == null) return;
+
+        // 1. Notificación y Correo para el HOST
+        var hostMessage = $"Tienes una nueva reserva para '{propertyTitle}' del {checkIn:d} al {checkOut:d}.";
+        await SaveNotificationInternalAsync(hostId, hostMessage);
+        
+        string hostHtml = EmailTemplateProvider.GetHostNewReservationEmail(host.FullName, guest.FullName, propertyTitle, checkIn, checkOut);
+        _emailService.SendEmailInBackground(host.Email, "¡Tienes una nueva reserva!", hostHtml);
+
+
+        // 2. Notificación y Correo para el GUEST
+        var guestMessage = $"¡Tu reserva en '{propertyTitle}' ha sido confirmada del {checkIn:d} al {checkOut:d}!";
+        await SaveNotificationInternalAsync(guestId, guestMessage);
+
+        string guestHtml = EmailTemplateProvider.GetGuestConfirmationEmail(guest.FullName, propertyTitle, checkIn, checkOut);
+        _emailService.SendEmailInBackground(guest.Email, "Tu viaje está confirmado", guestHtml);
+    }
+
     public async Task SendNotificationAsync(Guid userId, string message, string propertyTitle, string status)
     {
-        var notification = new Notification
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            Message = message,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _notificationRepo.AddAsync(notification);
+        await SaveNotificationInternalAsync(userId, message);
 
         var user = await _userRepository.GetByIdAsync(userId);
-        
         if (user != null)
         {
             string htmlBody = EmailTemplateProvider.GetReservationStatusEmail(user.FullName, propertyTitle, status);
@@ -46,4 +60,18 @@ public class NotificationService : INotificationService
                 body: htmlBody
             );
         }
-    }}
+    }
+
+    // --- Helper Privado para no repetir el código de guardar en BD ---
+    private async Task SaveNotificationInternalAsync(Guid userId, string message)
+    {
+        var notification = new Notification
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Message = message,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _notificationRepo.AddAsync(notification);
+    }
+}
