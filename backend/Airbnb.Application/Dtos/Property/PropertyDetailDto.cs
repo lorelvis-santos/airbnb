@@ -13,6 +13,7 @@ public class PropertyDetailDto
     public List<PropertyImageDto> Images { get; set; } = new();
     public List<PropertyBlockDto> Blocks { get; set; } = [];
     public List<ReservationDateDto> Reservations { get; set; } = [];
+    public List<PropertyReviewDto> Reviews { get; set; } = [];
     public double AverageRating { get; set; }
     public int ReviewsCount { get; set; }
 }
@@ -28,4 +29,13 @@ public class PropertyBlockDto
     public Guid Id { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+}
+
+public class PropertyReviewDto
+{
+    public Guid Id { get; set; }
+    public string GuestName { get; set; } = string.Empty;
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }

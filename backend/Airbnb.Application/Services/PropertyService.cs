@@ -106,8 +106,21 @@ public class PropertyService : IPropertyService
                     CheckIn = r.CheckIn,
                     CheckOut = r.CheckOut
                 })],
-            AverageRating = property.Reviews.Count != 0 ? property.Reviews.Average(r => r.Rating) : 0,
-            ReviewsCount = property.Reviews.Count
+            AverageRating = property.Reviews != null && property.Reviews.Any() ?
+                Math.Round(property.Reviews.Average(r => r.Rating), 1) : 0,
+            ReviewsCount = property.Reviews != null ? property.Reviews.Count : 0,
+    
+            // Agrega esto al final del mapeo de PropertyDetailDto:
+            Reviews = property.Reviews != null 
+                ? [.. property.Reviews.Select(r => new PropertyReviewDto 
+                { 
+                    Id = r.Id, 
+                    GuestName = r.Guest?.FullName ?? "Usuario de Airbnb", 
+                    Rating = r.Rating, 
+                    Comment = r.Comment, 
+                    CreatedAt = r.CreatedAt 
+                }).OrderByDescending(r => r.CreatedAt)] 
+                : []
         };
     }
 

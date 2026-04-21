@@ -29,7 +29,8 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             .Include(p => p.Host)
             .Include(p => p.Blocks)
             .Include(p => p.Reservations)
-            .Include(p => p.Reviews) // ¡Este está perfecto!
+            .Include(p => p.Reviews)
+                .ThenInclude(r => r.Guest)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
