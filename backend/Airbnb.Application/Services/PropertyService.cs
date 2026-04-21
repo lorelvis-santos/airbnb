@@ -32,10 +32,8 @@ public class PropertyService : IPropertyService
     {
         var query = _propertyRepository.GetQueryable();
 
-        // Llamamos al repositorio pasándole la consulta base, la expresión de mapeo y los datos de paginación
         var (items, totalCount) = await _propertyRepository.GetPagedProjectedAsync(
             query,
-            // Esta es la Expression<Func<Property, PropertyResponseDto>>
             p => new PropertyResponseDto
             {
                 Id = p.Id,
@@ -54,14 +52,13 @@ public class PropertyService : IPropertyService
                     Id = i.Id, 
                     Url = i.Url 
                 }).ToList(),
-                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                AverageRating = p.Reviews.Any() ? Math.Round(p.Reviews.Average(r => r.Rating), 1) : 0,
                 ReviewsCount = p.Reviews.Count()
             },
             pageNumber,
             pageSize
         );
 
-        // Retornamos el envolvente final a la API
         return new PagedResult<PropertyResponseDto>
         {
             Items = items,
@@ -89,28 +86,22 @@ public class PropertyService : IPropertyService
             Host = property.Host != null ? 
                 new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName } :
                 null,
-            Images = [.. property.Images.Select(i => new PropertyImageDto 
-                { 
-                    Id = i.Id, 
-                    Url = i.Url 
-                })],
-            Blocks = [.. property.Blocks.Select(b => new PropertyBlockDto {
-                Id = b.Id,
-                StartDate = b.StartDate, 
-                EndDate = b.EndDate 
-            })],
-            Reservations = [.. property.Reservations
-                .Where(r => r.Status == ReservationStatus.Confirmed)
-                .Select(r => new ReservationDateDto
-                {
-                    CheckIn = r.CheckIn,
-                    CheckOut = r.CheckOut
-                })],
-            AverageRating = property.Reviews != null && property.Reviews.Any() ?
-                Math.Round(property.Reviews.Average(r => r.Rating), 1) : 0,
+            Images = property.Images != null 
+                ? [.. property.Images.Select(i => new PropertyImageDto { Id = i.Id, Url = i.Url })] 
+                : [],
+            Blocks = property.Blocks != null 
+                ? [.. property.Blocks.Select(b => new PropertyBlockDto { Id = b.Id, StartDate = b.StartDate, EndDate = b.EndDate })] 
+                : [],
+            Reservations = property.Reservations != null 
+                ? [.. property.Reservations
+                    .Where(r => r.Status == ReservationStatus.Confirmed)
+                    .Select(r => new ReservationDateDto { CheckIn = r.CheckIn, CheckOut = r.CheckOut })]
+                : [],
+            AverageRating = property.Reviews != null && property.Reviews.Any() 
+                ? Math.Round(property.Reviews.Average(r => r.Rating), 1) 
+                : 0,
             ReviewsCount = property.Reviews != null ? property.Reviews.Count : 0,
     
-            // Agrega esto al final del mapeo de PropertyDetailDto:
             Reviews = property.Reviews != null 
                 ? [.. property.Reviews.Select(r => new PropertyReviewDto 
                 { 
@@ -126,13 +117,9 @@ public class PropertyService : IPropertyService
 
     public async Task<PagedResult<PropertyResponseDto>> GetPropertiesByHostAsync(Guid hostId, int pageNumber = 1, int pageSize = 12)
     {
-        // Asumiendo que GetPropertiesByHostAsync del repo devuelve un IEnumerable
         var properties = await _propertyRepository.GetPropertiesByHostAsync(hostId);
-        
-        // Contamos el total para la metadata de la paginación
         var totalCount = properties.Count();
 
-        // Paginamos en memoria y Mapeamos a DTO
         var propertyDtos = properties
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -149,12 +136,8 @@ public class PropertyService : IPropertyService
                     Id = p.Host.Id,
                     FullName = p.Host.FullName
                 } : null,
-                Images = [.. p.Images.Select(i => new PropertyImageDto 
-                { 
-                    Id = i.Id, 
-                    Url = i.Url 
-                })],
-                AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                Images = p.Images != null ? [.. p.Images.Select(i => new PropertyImageDto { Id = i.Id, Url = i.Url })] : [],
+                AverageRating = p.Reviews != null && p.Reviews.Any() ? Math.Round(p.Reviews.Average(r => r.Rating), 1) : 0,
                 ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
             }).ToList();
 
@@ -167,12 +150,11 @@ public class PropertyService : IPropertyService
         };
     }
 
-    // CORRECCIÓN 3: Implementación de la paginación para el Buscador
     public async Task<PagedResult<PropertyResponseDto>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province,
-        DateTime startDate, 
-        DateTime endDate, 
+        DateTime? startDate, 
+        DateTime? endDate, 
         int? capacity,
         decimal? minPrice,
         decimal? maxPrice,
@@ -180,23 +162,27 @@ public class PropertyService : IPropertyService
         int pageSize = 12
     )
     {
-        if (startDate >= endDate)
+        // CORRECCIÓN AQUÍ: Manejo seguro de nulables y lógica estricta
+        if (startDate.HasValue && endDate.HasValue)
         {
-            throw new AppException(ErrorType.Validation, "La fecha de inicio (Check-in) debe ser anterior a la fecha de salida (Check-out).");
+            if (startDate.Value >= endDate.Value)
+            {
+                throw new AppException(ErrorType.Validation, "La fecha de inicio (Check-in) debe ser anterior a la fecha de salida (Check-out).");
+            }
+
+            if (startDate.Value.Date < DateTime.UtcNow.Date)
+            {
+                throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
+            }
+        }
+        else if (startDate.HasValue || endDate.HasValue)
+        {
+            throw new AppException(ErrorType.Validation, "Debe especificar tanto la fecha de llegada como la fecha de salida.");
         }
 
-        if (startDate.Date < DateTime.UtcNow.Date)
-        {
-            throw new AppException(ErrorType.Validation, "No se pueden realizar búsquedas en fechas pasadas.");
-        }
-
-        // Buscamos las entidades
         var properties = await _propertyRepository.SearchAvailablePropertiesAsync(city, province, startDate, endDate, capacity, minPrice, maxPrice);
-
-        // Contamos el total para la metadata de la paginación
         var totalCount = properties.Count();
 
-        // Paginamos en memoria y Mapeamos a DTO
         var propertyDtos = properties
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -213,12 +199,8 @@ public class PropertyService : IPropertyService
                     Id = p.Host.Id,
                     FullName = p.Host.FullName
                 } : null,
-                Images = [.. p.Images.Select(i => new PropertyImageDto 
-                { 
-                    Id = i.Id, 
-                    Url = i.Url 
-                })],
-                AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
+                Images = p.Images != null ? [.. p.Images.Select(i => new PropertyImageDto { Id = i.Id, Url = i.Url })] : [],
+                AverageRating = p.Reviews != null && p.Reviews.Any() ? Math.Round(p.Reviews.Average(r => r.Rating), 1) : 0,
                 ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
             }).ToList();
 
@@ -258,7 +240,6 @@ public class PropertyService : IPropertyService
             throw new AppException(ErrorType.NotFound, "La propiedad no existe.");
         }
 
-        // Regla de negocio estricta: Solo el dueño puede modificar
         if (property.HostId != hostId)
         {
             throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
@@ -284,7 +265,6 @@ public class PropertyService : IPropertyService
             throw new AppException(ErrorType.NotFound, "La propiedad no existe.");
         }
 
-        // Regla de negocio estricta: Solo el dueño puede eliminar
         if (property.HostId != hostId)
         {
             throw new AppException(ErrorType.Unauthorized, "No tienes permiso para eliminar esta propiedad.");
@@ -316,7 +296,6 @@ public class PropertyService : IPropertyService
 
         foreach (var file in files)
         {
-            // Delegamos el guardado físico a la Infraestructura
             var relativeUrl = await _storageService.SaveFileAsync(file.Content, file.Extension);
 
             var propertyImage = new PropertyImage
@@ -337,28 +316,17 @@ public class PropertyService : IPropertyService
     {
         var property = await _propertyRepository.GetByIdAsync(propertyId);
         
-        if (property == null)
-        {
-            throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
-        }
-            
-        if (property.HostId != hostId)
-        {
-            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
-        }
+        if (property == null) throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        if (property.HostId != hostId) throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
 
         var image = await _imageRepository.GetByIdAsync(imageId);
         
-        // Validamos que la imagen exista y pertenezca a la propiedad especificada
         if (image == null || image.PropertyId != propertyId)
         {
             throw new AppException(ErrorType.NotFound, "La imagen especificada no existe en este alojamiento.");
         }
 
-        // 1. Eliminamos el archivo físico del servidor
         await _storageService.DeleteFileAsync(image.Url);
-
-        // 2. Eliminamos el registro de la base de datos
         await _imageRepository.DeleteAsync(image);
     }
 
@@ -366,15 +334,8 @@ public class PropertyService : IPropertyService
     {
         var property = await _propertyRepository.GetByIdAsync(propertyId);
         
-        if (property == null)
-        {
-            throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
-        }
-
-        if (property.HostId != hostId)
-        {
-            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
-        }
+        if (property == null) throw new AppException(ErrorType.NotFound, "Propiedad no encontrada.");
+        if (property.HostId != hostId) throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta propiedad.");
         
         if (dto.StartDate.Date < DateTime.UtcNow.Date)
         {

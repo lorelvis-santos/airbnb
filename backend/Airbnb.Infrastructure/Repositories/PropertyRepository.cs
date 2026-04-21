@@ -50,8 +50,8 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
     public async Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
         string? city,
         string? province,
-        DateTime startDate,
-        DateTime endDate,
+        DateTime? startDate, // Cambiado a nullable
+        DateTime? endDate,   // Cambiado a nullable
         int? capacity,
         decimal? minPrice,
         decimal? maxPrice
@@ -88,10 +88,17 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             query = query.Where(p => p.PricePerNight <= maxPrice.Value);
         }
 
-        query = query.Where(p =>
-            !p.Reservations.Any(r => r.Status == ReservationStatus.Confirmed && r.CheckIn < endDate && r.CheckOut > startDate) &&
-            !p.Blocks.Any(b => b.StartDate < endDate && b.EndDate > startDate)
-        );
+        // El filtro de fechas se ejecuta únicamente si se proporcionan ambas
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            var start = startDate.Value;
+            var end = endDate.Value;
+
+            query = query.Where(p =>
+                !p.Reservations.Any(r => r.Status == ReservationStatus.Confirmed && r.CheckIn < end && r.CheckOut > start) &&
+                !p.Blocks.Any(b => b.StartDate < end && b.EndDate > start)
+            );
+        }
 
         return await query.ToListAsync();
     }

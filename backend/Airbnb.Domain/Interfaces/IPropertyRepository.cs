@@ -11,8 +11,8 @@ public interface IPropertyRepository : IRepository<Property>
     Task<IEnumerable<Property>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province, 
-        DateTime startDate, 
-        DateTime endDate, 
+        DateTime? startDate, 
+        DateTime? endDate, 
         int? capacity,
         decimal? minPrice,
         decimal? maxPrice

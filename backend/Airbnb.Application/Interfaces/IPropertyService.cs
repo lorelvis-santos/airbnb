@@ -17,8 +17,8 @@ public interface IPropertyService
     Task<PagedResult<PropertyResponseDto>> SearchAvailablePropertiesAsync(
         string? city, 
         string? province, 
-        DateTime startDate, 
-        DateTime endDate, 
+        DateTime? startDate, 
+        DateTime? endDate, 
         int? capacity,
         decimal? minPrice,
         decimal? maxPrice,

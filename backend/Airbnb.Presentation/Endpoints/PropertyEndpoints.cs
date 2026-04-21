@@ -35,8 +35,8 @@ public static class PropertyEndpoints
         group.MapGet("/search", [Authorize] async (
             [FromQuery] string? city, 
             [FromQuery] string? province, 
-            [FromQuery] DateTime startDate, 
-            [FromQuery] DateTime endDate, 
+            [FromQuery] DateTime? startDate, 
+            [FromQuery] DateTime? endDate, 
             [FromQuery] int? capacity, 
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,
