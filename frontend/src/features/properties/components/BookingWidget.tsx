@@ -5,6 +5,7 @@ import { DayPicker, type DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { Star, Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
+import { useNavigate } from "react-router-dom"; // <-- NUEVO IMPORT
 
 import { useCreateReservation } from "../../../hooks/reservations/useMutations";
 import type { PropertyDetail } from "../../../schemas/property.schema";
@@ -21,10 +22,11 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
   const [guests, setGuests] = useState(1);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // 2. Hooks de Datos
+  // 2. Hooks de Datos y Navegación
   const createReservation = useCreateReservation();
+  const navigate = useNavigate(); // <-- INICIALIZACIÓN DEL HOOK
 
-  // --- NUEVO: Bloqueo de Scroll (Scroll Lock) ---
+  // --- Bloqueo de Scroll (Scroll Lock) ---
   useEffect(() => {
     if (isCalendarOpen) {
       document.body.style.overflow = "hidden"; // Bloquea el scroll
@@ -40,21 +42,18 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
 
   // 3. Lógica Computada
   const disabledDates = useMemo(() => {
-    // 1. Bloqueos manuales del anfitrión
     const blocks =
       property.blocks?.map((block) => ({
         from: new Date(block.startDate),
         to: new Date(block.endDate),
       })) || [];
 
-    // 2. Reservas ya confirmadas (Asegúrate de traer esto en tu PropertyDetailDto)
     const reservations =
       property.reservations?.map((res) => ({
         from: new Date(res.checkIn),
         to: new Date(res.checkOut),
       })) || [];
 
-    // 3. Unificamos todo: Hoy hacia atrás + Bloqueos + Reservas
     return [{ before: startOfDay(new Date()) }, ...blocks, ...reservations];
   }, [property.blocks, property.reservations]);
 
@@ -84,6 +83,7 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
           toast.success("¡Reserva confirmada exitosamente!");
           setDateRange(undefined);
           setIsCalendarOpen(false);
+          navigate("/my-trips"); // <-- REDIRECCIÓN APLICADA AQUÍ
         },
         onError: (error: AxiosError<BackendResponse<null>>) => {
           const msg =
