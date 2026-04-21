@@ -40,13 +40,23 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
 
   // 3. Lógica Computada
   const disabledDates = useMemo(() => {
+    // 1. Bloqueos manuales del anfitrión
     const blocks =
       property.blocks?.map((block) => ({
         from: new Date(block.startDate),
         to: new Date(block.endDate),
       })) || [];
-    return [{ before: startOfDay(new Date()) }, ...blocks];
-  }, [property.blocks]);
+
+    // 2. Reservas ya confirmadas (Asegúrate de traer esto en tu PropertyDetailDto)
+    const reservations =
+      property.reservations?.map((res) => ({
+        from: new Date(res.checkIn),
+        to: new Date(res.checkOut),
+      })) || [];
+
+    // 3. Unificamos todo: Hoy hacia atrás + Bloqueos + Reservas
+    return [{ before: startOfDay(new Date()) }, ...blocks, ...reservations];
+  }, [property.blocks, property.reservations]);
 
   const nights =
     dateRange?.from && dateRange?.to

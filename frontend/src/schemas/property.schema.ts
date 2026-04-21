@@ -35,6 +35,14 @@ export const propertyDetailSchema = z.object({
   blocks: z.array(propertyBlockSchema),
   averageRating: z.number(),
   reviewsCount: z.number(),
+  reservations: z
+    .array(
+      z.object({
+        checkIn: z.string(),
+        checkOut: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 export type PropertyDetail = z.infer<typeof propertyDetailSchema>;
