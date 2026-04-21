@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { PropertyAPI } from "../../api/PropertyAPI";
+import { PropertyAPI, type SearchFilters } from "../../api/PropertyAPI";
 
 export const useProperties = (pageNumber = 1, pageSize = 12) => {
   return useQuery({
@@ -16,5 +16,14 @@ export const useProperty = (id: string | undefined) => {
     queryFn: () => PropertyAPI.getById(id!),
     enabled: !!id, // Solo se ejecuta si el ID existe
     staleTime: 1000 * 60 * 5, // 5 minutos de caché
+  });
+};
+
+export const useSearchProperties = (filters: SearchFilters) => {
+  return useQuery({
+    queryKey: ["properties", "search", filters],
+    queryFn: () => PropertyAPI.searchProperties(filters),
+    placeholderData: (previousData) => previousData,
+    enabled: true,
   });
 };

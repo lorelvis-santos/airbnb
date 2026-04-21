@@ -1,11 +1,50 @@
-import { Search, MapPin, Calendar, Users } from "lucide-react";
-import { useProperties } from "../../hooks/properties/useQueries";
+import { useState } from "react";
+import { Search, MapPin, Calendar, Users, DollarSign } from "lucide-react";
+import { useSearchProperties } from "../../hooks/properties/useQueries";
 import PropertyCard from "./components/PropertyCard";
+import type { Property } from "../../schemas/property.schema";
+import type { SearchFilters } from "../../api/PropertyAPI";
 
 export default function Home() {
-  // Consumimos la API usando nuestro Hook. Pedimos la primera página con 12 elementos.
-  const { data: response, isLoading } = useProperties(1, 12);
-  const properties = response?.data.items || [];
+  const [formValues, setFormValues] = useState<SearchFilters>({
+    city: "",
+    startDate: "",
+    endDate: "",
+    capacity: "",
+    minPrice: "",
+    maxPrice: "",
+  });
+
+  // Empezamos con un objeto vacío. El backend al recibir filtros vacíos debe devolver un GetAll normal.
+  const [activeFilters, setActiveFilters] = useState<SearchFilters>({});
+
+  const { data: response, isLoading } = useSearchProperties(activeFilters);
+  const properties: Property[] = response?.data?.items || [];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValues({ ...formValues, [e.target.name]: e.target.value });
+  };
+
+  const handleSearch = () => {
+    setActiveFilters(formValues);
+  };
+
+  const clearFilters = () => {
+    setFormValues({
+      city: "",
+      startDate: "",
+      endDate: "",
+      capacity: "",
+      minPrice: "",
+      maxPrice: "",
+    });
+    setActiveFilters({});
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+  const hasActiveFilters = Object.values(activeFilters).some(
+    (val) => val !== "" && val !== undefined,
+  );
 
   return (
     <div className="bg-white">
@@ -28,52 +67,155 @@ export default function Home() {
             aventura.
           </p>
 
-          {/* Buscador: Adaptable a móvil (Columna) y Escritorio (Fila) */}
-          <div className="mx-auto mt-10 max-w-4xl flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-3xl sm:rounded-full bg-white p-4 sm:p-2 shadow-xl border border-gray-100 gap-2 sm:gap-0">
+          {/* Buscador Interactivo Ampliado */}
+          <div className="mx-auto mt-10 max-w-6xl flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-3xl sm:rounded-full bg-white p-4 sm:p-2 shadow-xl border border-gray-100 gap-2 sm:gap-0">
             {/* Ubicación */}
-            <div className="flex flex-1 items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition cursor-pointer">
+            <div className="flex flex-1 items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition">
               <MapPin className="h-5 w-5 text-gray-400 mr-3 shrink-0" />
               <div className="text-left w-full">
-                <p className="text-xs font-bold text-gray-900">Dónde</p>
+                <label
+                  htmlFor="city"
+                  className="block text-xs font-bold text-gray-900"
+                >
+                  Dónde
+                </label>
                 <input
+                  id="city"
+                  name="city"
                   type="text"
+                  value={formValues.city}
+                  onChange={handleInputChange}
                   placeholder="Explorar destinos"
                   className="block w-full border-0 p-0 text-gray-600 placeholder-gray-400 focus:ring-0 sm:text-sm bg-transparent outline-none"
                 />
               </div>
             </div>
 
-            {/* Separador Vertical (Escritorio) / Horizontal (Móvil) */}
             <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
             <div className="h-px w-full bg-gray-100 sm:hidden border-none my-1"></div>
 
-            {/* Fechas */}
-            <div className="flex flex-1 items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition cursor-pointer">
+            {/* Fechas (Llegada - Salida combinadas visualmente) */}
+            <div className="flex flex-[1.5] items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition">
               <Calendar className="h-5 w-5 text-gray-400 mr-3 shrink-0" />
-              <div className="text-left w-full">
-                <p className="text-xs font-bold text-gray-900">Fechas</p>
-                <p className="text-sm text-gray-400">Añade fechas</p>
+              <div className="flex w-full gap-2">
+                <div className="text-left w-full">
+                  <label
+                    htmlFor="startDate"
+                    className="block text-[10px] uppercase font-bold text-gray-900"
+                  >
+                    Llegada
+                  </label>
+                  <input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    min={today}
+                    value={formValues.startDate}
+                    onChange={handleInputChange}
+                    className="block w-full border-0 p-0 text-gray-600 focus:ring-0 text-xs sm:text-sm bg-transparent outline-none cursor-pointer"
+                  />
+                </div>
+                <div className="text-left w-full">
+                  <label
+                    htmlFor="endDate"
+                    className="block text-[10px] uppercase font-bold text-gray-900"
+                  >
+                    Salida
+                  </label>
+                  <input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    min={formValues.startDate || today}
+                    value={formValues.endDate}
+                    onChange={handleInputChange}
+                    className="block w-full border-0 p-0 text-gray-600 focus:ring-0 text-xs sm:text-sm bg-transparent outline-none cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Separador Vertical (Escritorio) / Horizontal (Móvil) */}
             <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
             <div className="h-px w-full bg-gray-100 sm:hidden border-none my-1"></div>
 
             {/* Huéspedes */}
-            <div className="flex flex-1 items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition cursor-pointer">
+            <div className="flex flex-[0.7] items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition">
               <Users className="h-5 w-5 text-gray-400 mr-3 shrink-0" />
               <div className="text-left w-full">
-                <p className="text-xs font-bold text-gray-900">Quién</p>
-                <p className="text-sm text-gray-400">¿Cuántos?</p>
+                <label
+                  htmlFor="capacity"
+                  className="block text-xs font-bold text-gray-900"
+                >
+                  Quién
+                </label>
+                <input
+                  id="capacity"
+                  name="capacity"
+                  type="number"
+                  min="1"
+                  value={formValues.capacity}
+                  onChange={handleInputChange}
+                  placeholder="Huéspedes"
+                  className="block w-full border-0 p-0 text-gray-600 placeholder-gray-400 focus:ring-0 sm:text-sm bg-transparent outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
+            <div className="h-px w-full bg-gray-100 sm:hidden border-none my-1"></div>
+
+            {/* Precio Min - Max */}
+            <div className="flex flex-[1.2] items-center px-4 py-3 sm:py-2 hover:bg-gray-50 rounded-2xl sm:rounded-full transition">
+              <DollarSign className="h-5 w-5 text-gray-400 mr-2 shrink-0" />
+              <div className="flex w-full gap-2 items-center">
+                <div className="text-left w-full">
+                  <label
+                    htmlFor="minPrice"
+                    className="block text-[10px] uppercase font-bold text-gray-900"
+                  >
+                    Mín
+                  </label>
+                  <input
+                    id="minPrice"
+                    name="minPrice"
+                    type="number"
+                    min="0"
+                    value={formValues.minPrice}
+                    onChange={handleInputChange}
+                    placeholder="$0"
+                    className="block w-full border-0 p-0 text-gray-600 focus:ring-0 text-xs sm:text-sm bg-transparent outline-none"
+                  />
+                </div>
+                <span className="text-gray-300">-</span>
+                <div className="text-left w-full">
+                  <label
+                    htmlFor="maxPrice"
+                    className="block text-[10px] uppercase font-bold text-gray-900"
+                  >
+                    Máx
+                  </label>
+                  <input
+                    id="maxPrice"
+                    name="maxPrice"
+                    type="number"
+                    min="0"
+                    value={formValues.maxPrice}
+                    onChange={handleInputChange}
+                    placeholder="$1000"
+                    className="block w-full border-0 p-0 text-gray-600 focus:ring-0 text-xs sm:text-sm bg-transparent outline-none"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Botón Buscar */}
-            <div className="mt-2 sm:mt-0 sm:ml-4">
-              <button className="flex w-full sm:w-auto items-center justify-center rounded-2xl sm:rounded-full bg-blue-600 px-8 py-4 sm:py-3 text-white hover:bg-blue-500 transition-colors shadow-md">
-                <Search className="h-5 w-5 mr-2" />
-                <span className="font-bold">Buscar</span>
+            <div className="mt-2 sm:mt-0 sm:ml-2">
+              <button
+                onClick={handleSearch}
+                className="flex w-full sm:w-auto items-center justify-center rounded-2xl sm:rounded-full bg-blue-600 px-6 py-4 sm:py-3 text-white hover:bg-blue-700 transition-colors shadow-md"
+              >
+                <Search className="h-5 w-5 sm:mr-0 lg:mr-2" />
+                <span className="font-bold sm:hidden lg:inline">Buscar</span>
               </button>
             </div>
           </div>
@@ -82,9 +224,21 @@ export default function Home() {
 
       {/* --- SECCIÓN DE RESULTADOS / CATÁLOGO --- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-2xl font-bold text-gray-900 text-left mb-6">
-          Explorar propiedades
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 text-left">
+            {hasActiveFilters
+              ? "Resultados de búsqueda"
+              : "Explorar propiedades"}
+          </h2>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800 underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
 
         {isLoading ? (
           // Skeletons de carga
@@ -105,9 +259,13 @@ export default function Home() {
           </div>
         ) : properties.length === 0 ? (
           // Estado Vacío
-          <div className="py-12 text-center text-gray-500">
-            <p className="text-lg">
-              No se encontraron propiedades en este momento.
+          <div className="py-20 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <MapPin className="h-10 w-10 text-gray-300 mx-auto mb-4" />
+            <p className="text-xl font-bold text-gray-900 mb-2">
+              No se encontraron propiedades
+            </p>
+            <p className="text-sm">
+              Intenta cambiar las fechas, el destino o la cantidad de huéspedes.
             </p>
           </div>
         ) : (

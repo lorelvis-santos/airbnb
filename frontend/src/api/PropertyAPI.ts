@@ -6,6 +6,16 @@ import type {
   PropertyFormData,
 } from "../schemas/property.schema";
 
+export type SearchFilters = {
+  city?: string;
+  province?: string;
+  startDate?: string;
+  endDate?: string;
+  capacity?: string | number;
+  minPrice?: string | number;
+  maxPrice?: string | number;
+};
+
 export const PropertyAPI = {
   getAll: async (
     pageNumber = 1,
@@ -100,6 +110,26 @@ export const PropertyAPI = {
   unblockDates: async (propertyId: string, blockId: string) => {
     const response = await api.delete(
       `/properties/${propertyId}/blocks/${blockId}`,
+    );
+    return response.data;
+  },
+
+  // 2. Aplicamos el tipo SearchFilters a los parámetros
+  // 3. Tipamos el retorno de la API para asegurar la consistencia de los datos
+  searchProperties: async (
+    params: SearchFilters,
+  ): Promise<BackendResponse<PagedResult<Property>>> => {
+    const query = new URLSearchParams();
+
+    // Al usar Object.entries con TypeScript estricto, le decimos que son key-value
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== "" && value !== null) {
+        query.append(key, value.toString());
+      }
+    });
+
+    const response = await api.get<BackendResponse<PagedResult<Property>>>(
+      `/properties/search?${query.toString()}`,
     );
     return response.data;
   },
