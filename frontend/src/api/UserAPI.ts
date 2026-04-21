@@ -7,4 +7,11 @@ export const UserAPI = {
     const response = await api.get<BackendResponse<User>>("/users/me");
     return response.data;
   },
+  becomeHost: async (): Promise<BackendResponse<{ message: string }>> => {
+    const response =
+      await api.post<BackendResponse<{ message: string }>>(
+        "/users/become-host",
+      );
+    return response.data;
+  },
 };
