@@ -10,7 +10,7 @@ public class PropertyResponseDto
     public int Capacity { get; set; }
     
     public HostSimpleDto? Host { get; set; } = null;
-    public List<string> Images { get; set; } = [];
+    public List<PropertyImageDto> Images { get; set; } = [];
     public double AverageRating { get; set; }
     public int ReviewsCount { get; set; }
 }

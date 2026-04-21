@@ -10,7 +10,7 @@ public class PropertyDetailDto
     public decimal PricePerNight { get; set; }
     public int Capacity { get; set; }
     public HostSimpleDto? Host { get; set; } = null;
-    public List<string> Images { get; set; } = new();
+    public List<PropertyImageDto> Images { get; set; } = new();
     public List<PropertyBlockDto> Blocks { get; set; } = [];
     public List<ReservationDateDto> Reservations { get; set; } = [];
 }

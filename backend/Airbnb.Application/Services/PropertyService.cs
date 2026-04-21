@@ -49,7 +49,11 @@ public class PropertyService : IPropertyService
                     Id = p.HostId,
                     FullName = p.Host.FullName
                 } : null,
-                Images = p.Images.Select(i => i.Url).ToList(),
+                Images = p.Images.Select(i => new PropertyImageDto 
+                { 
+                    Id = i.Id, 
+                    Url = i.Url 
+                }).ToList(),
                 AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
                 ReviewsCount = p.Reviews.Count()
             },
@@ -85,7 +89,11 @@ public class PropertyService : IPropertyService
             Host = property.Host != null ? 
                 new HostSimpleDto { Id = property.Host.Id, FullName = property.Host.FullName } :
                 null,
-            Images = property.Images.Select(i => i.Url).ToList(),
+            Images = [.. property.Images.Select(i => new PropertyImageDto 
+                { 
+                    Id = i.Id, 
+                    Url = i.Url 
+                })],
             Blocks = [.. property.Blocks.Select(b => new PropertyBlockDto { StartDate = b.StartDate, EndDate = b.EndDate })],
             Reservations = [.. property.Reservations
                 .Where(r => r.Status == ReservationStatus.Confirmed)
@@ -122,7 +130,11 @@ public class PropertyService : IPropertyService
                     Id = p.Host.Id,
                     FullName = p.Host.FullName
                 } : null,
-                Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>(),
+                Images = [.. p.Images.Select(i => new PropertyImageDto 
+                { 
+                    Id = i.Id, 
+                    Url = i.Url 
+                })],
                 AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
                 ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
             }).ToList();
@@ -182,7 +194,11 @@ public class PropertyService : IPropertyService
                     Id = p.Host.Id,
                     FullName = p.Host.FullName
                 } : null,
-                Images = p.Images != null ? p.Images.Select(i => i.Url).ToList() : new List<string>(),
+                Images = [.. p.Images.Select(i => new PropertyImageDto 
+                { 
+                    Id = i.Id, 
+                    Url = i.Url 
+                })],
                 AverageRating = p.Reviews != null && p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
                 ReviewsCount = p.Reviews != null ? p.Reviews.Count : 0
             }).ToList();
