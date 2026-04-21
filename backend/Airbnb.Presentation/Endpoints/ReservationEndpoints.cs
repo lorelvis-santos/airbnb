@@ -49,9 +49,10 @@ public static class ReservationEndpoints
         });
 
         // Completar reserva
-        group.MapPatch("/{id}/complete", [Authorize] async (Guid id, IReservationService service) =>
+        group.MapPatch("/{id}/complete", [Authorize] async (Guid id, ClaimsPrincipal user, IReservationService service) =>
         {
-            await service.CompleteReservationAsync(id);
+            var userId = user.GetUserId();
+            await service.CompleteReservationAsync(id, userId);
             return Results.Ok(ApiResponse<object>.Success(new { message = "Reserva completada exitosamente." }));
         });
 

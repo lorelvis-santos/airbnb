@@ -103,6 +103,7 @@ public class ReservationService : IReservationService
 
             await _reservationRepo.AddAsync(reservation);
 
+            // Notificación contextual al crear
             await _notificationService.SendNewReservationNotificationsAsync(
                 property.HostId, 
                 dto.GuestId, 
@@ -152,30 +153,30 @@ public class ReservationService : IReservationService
         reservation.Status = ReservationStatus.Cancelled;
         await _reservationRepo.UpdateAsync(reservation);
 
-        var cancelMessage = $"La reserva para '{property!.Title}' ha sido cancelada.";
-
-        await _notificationService.SendNotificationAsync(
-            property.HostId, 
-            cancelMessage,
-            property.Title,
-            "Cancelada"
-        );
-        
-        await _notificationService.SendNotificationAsync(
-            reservation.GuestId, 
-            cancelMessage,
-            property.Title,
-            "Cancelada"
+        // Notificación contextual para Anfitrión y Huésped
+        await _notificationService.SendStatusUpdateNotificationsAsync(
+            hostId: property!.HostId, 
+            guestId: reservation.GuestId, 
+            propertyTitle: property.Title, 
+            status: "Cancelada"
         );
     }
 
-    public async Task CompleteReservationAsync(Guid reservationId)
+    public async Task CompleteReservationAsync(Guid reservationId, Guid userId)
     {
         var reservation = await _reservationRepo.GetByIdAsync(reservationId);
 
         if (reservation == null)
         {
             throw new AppException(ErrorType.NotFound, "Reserva no encontrada");
+        }
+
+        var property = await _propertyRepo.GetByIdAsync(reservation.PropertyId);
+
+        // Validación de permisos
+        if (reservation.GuestId != userId && property?.HostId != userId)
+        {
+            throw new AppException(ErrorType.Unauthorized, "No tienes permiso para modificar esta reserva.");
         }
 
         if (reservation.Status != ReservationStatus.Confirmed)
@@ -191,20 +192,12 @@ public class ReservationService : IReservationService
         reservation.Status = ReservationStatus.Completed;
         await _reservationRepo.UpdateAsync(reservation);
 
-        var property = await _propertyRepo.GetByIdAsync(reservation.PropertyId);
-
-        await _notificationService.SendNotificationAsync(
-            reservation.GuestId, 
-            "Esperamos que hayas disfrutado tu estancia. ¡No olvides dejar una reseña!",
-            property?.Title ?? "Alojamiento",
-            "Completada"
-        );
-
-        await _notificationService.SendNotificationAsync(
-            property!.HostId, 
-            $"El viaje de tu huésped en '{property.Title}' ha finalizado.",
-            property.Title,
-            "Completada"
+        // Notificación contextual para Anfitrión y Huésped
+        await _notificationService.SendStatusUpdateNotificationsAsync(
+            hostId: property!.HostId, 
+            guestId: reservation.GuestId, 
+            propertyTitle: property.Title, 
+            status: "Completada"
         );
     }
 }

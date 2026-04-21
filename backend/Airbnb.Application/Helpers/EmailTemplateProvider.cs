@@ -80,14 +80,27 @@ public static class EmailTemplateProvider
         </div>";
     }
 
-    public static string GetReservationStatusEmail(string userName, string propertyTitle, string status)
+    // Nueva plantilla para el Anfitrión ante un cambio de estado
+    public static string GetHostStatusEmail(string hostName, string propertyTitle, string status)
     {
-        var color = status == "Confirmada" ? "#10b981" : "#ef4444";
+        var color = status is "Confirmada" or "Completada" ? "#10b981" : "#ef4444";
         return $@"
-        <div style='font-family: sans-serif; padding: 20px;'>
-            <h2 style='color: {color};'>Tu reserva ha sido {status}</h2>
-            <p>Hola {userName},</p>
-            <p>Te notificamos que el estado de tu viaje a <b>{propertyTitle}</b> ahora es: <b>{status}</b>.</p>
+        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;'>
+            <h2 style='color: {color};'>Actualización de reserva</h2>
+            <p>Hola <b>{hostName}</b>,</p>
+            <p>Te notificamos que la reserva en tu alojamiento <b>{propertyTitle}</b> ha cambiado su estado a: <b style='color: {color};'>{status}</b>.</p>
+        </div>";
+    }
+
+    // Nueva plantilla para el Huésped ante un cambio de estado
+    public static string GetGuestStatusEmail(string guestName, string propertyTitle, string status)
+    {
+        var color = status is "Confirmada" or "Completada" ? "#10b981" : "#ef4444";
+        return $@"
+        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;'>
+            <h2 style='color: {color};'>Actualización de tu viaje</h2>
+            <p>Hola <b>{guestName}</b>,</p>
+            <p>Te notificamos que el estado de tu viaje a <b>{propertyTitle}</b> ahora es: <b style='color: {color};'>{status}</b>.</p>
         </div>";
     }
 }

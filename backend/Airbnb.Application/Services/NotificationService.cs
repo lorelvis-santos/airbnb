@@ -45,21 +45,34 @@ public class NotificationService : INotificationService
         _emailService.SendEmailInBackground(guest.Email, "Tu viaje está confirmado", guestHtml);
     }
 
-    public async Task SendNotificationAsync(Guid userId, string message, string propertyTitle, string status)
+    public async Task SendStatusUpdateNotificationsAsync(Guid hostId, Guid guestId, string propertyTitle, string status)
     {
-        await SaveNotificationInternalAsync(userId, message);
+        var host = await _userRepository.GetByIdAsync(hostId);
+        var guest = await _userRepository.GetByIdAsync(guestId);
 
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user != null)
-        {
-            string htmlBody = EmailTemplateProvider.GetReservationStatusEmail(user.FullName, propertyTitle, status);
+        if (host == null || guest == null) return;
 
-            _emailService.SendEmailInBackground(
-                to: user.Email,
-                subject: $"Actualización de tu reserva: {status}",
-                body: htmlBody
-            );
-        }
+        // 1. Notificación contextual para el ANFITRIÓN
+        var hostMessage = $"La reserva en tu alojamiento '{propertyTitle}' ahora se encuentra: {status}.";
+        await SaveNotificationInternalAsync(hostId, hostMessage);
+
+        string hostHtml = EmailTemplateProvider.GetHostStatusEmail(host.FullName, propertyTitle, status);
+        _emailService.SendEmailInBackground(
+            to: host.Email,
+            subject: $"Actualización de reserva en {propertyTitle}",
+            body: hostHtml
+        );
+
+        // 2. Notificación contextual para el HUÉSPED
+        var guestMessage = $"Tu viaje a '{propertyTitle}' ahora se encuentra: {status}.";
+        await SaveNotificationInternalAsync(guestId, guestMessage);
+
+        string guestHtml = EmailTemplateProvider.GetGuestStatusEmail(guest.FullName, propertyTitle, status);
+        _emailService.SendEmailInBackground(
+            to: guest.Email,
+            subject: $"Actualización de tu viaje: {status}",
+            body: guestHtml
+        );
     }
 
     // --- Helper Privado para no repetir el código de guardar en BD ---
