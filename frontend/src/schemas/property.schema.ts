@@ -11,6 +11,7 @@ export const propertyResponseSchema = z.object({
   city: z.string(),
   province: z.string(),
   pricePerNight: z.number(),
+  capacity: z.number(),
   host: hostSimpleSchema.nullable(),
   images: z.array(z.string()),
   averageRating: z.number(),
@@ -45,5 +46,20 @@ export const propertyDetailSchema = z.object({
     .optional(),
 });
 
+export const propertyFormSchema = z.object({
+  title: z.string().min(10, "El título debe tener al menos 10 caracteres"),
+  description: z
+    .string()
+    .min(20, "La descripción debe tener al menos 20 caracteres"),
+  city: z.string().min(2, "La ciudad es obligatoria"),
+  province: z.string().min(2, "La provincia es obligatoria"),
+  pricePerNight: z.number().min(1, "El precio por noche debe ser mayor a 0"),
+  capacity: z
+    .number()
+    .min(1, "La capacidad debe ser de al menos 1 persona")
+    .max(50, "Capacidad máxima excedida"),
+});
+
+export type PropertyFormData = z.infer<typeof propertyFormSchema>;
 export type PropertyDetail = z.infer<typeof propertyDetailSchema>;
 export type Property = z.infer<typeof propertyResponseSchema>;

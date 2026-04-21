@@ -9,6 +9,8 @@ import Home from "../features/properties/Home";
 import PropertyDetails from "../features/properties/PropertyDetails";
 import MyTrips from "../features/reservations/MyTrips";
 import Notifications from "../features/notifications/Notifications";
+import PropertyForm from "../features/host/PropertyForm";
+import HostDashboard from "../features/host/HostDashboard";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -40,6 +42,9 @@ export const AppRouter = () => {
         <Route path="/properties/:id" element={<PropertyDetails />} />
         <Route path="/my-trips" element={<MyTrips />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/host" element={<HostDashboard />} />
+        <Route path="/properties/new" element={<PropertyForm />} />
+        <Route path="/properties/edit/:id" element={<PropertyForm />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
