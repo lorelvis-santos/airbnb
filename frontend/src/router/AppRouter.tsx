@@ -8,6 +8,7 @@ import MainLayout from "../components/layout/MainLayout";
 import Home from "../features/properties/Home";
 import PropertyDetails from "../features/properties/PropertyDetails";
 import MyTrips from "../features/reservations/MyTrips";
+import Notifications from "../features/notifications/Notifications";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -38,6 +39,7 @@ export const AppRouter = () => {
         <Route index element={<Home />} />
         <Route path="/properties/:id" element={<PropertyDetails />} />
         <Route path="/my-trips" element={<MyTrips />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
