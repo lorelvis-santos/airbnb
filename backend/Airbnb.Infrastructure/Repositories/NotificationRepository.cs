@@ -34,4 +34,11 @@ public class NotificationRepository : Repository<Notification>, INotificationRep
         return await _dbSet
             .CountAsync(n => n.UserId == userId && n.Status == NotificationStatus.Unread);
     }
+
+    public async Task MarkAllAsReadByUserIdAsync(Guid userId)
+    {
+        await _context.Set<Notification>()
+            .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.Status, NotificationStatus.Read));
+    }
 }

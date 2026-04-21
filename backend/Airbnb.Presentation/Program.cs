@@ -114,5 +114,6 @@ app.UseStaticFiles();
 app.MapUserEndpoints();
 app.MapPropertyEndpoints();
 app.MapReservationEndpoints(); 
+app.MapNotificationEndpoints();
 
 app.Run();

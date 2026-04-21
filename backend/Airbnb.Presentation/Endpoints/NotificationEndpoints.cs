@@ -62,5 +62,14 @@ public static class NotificationEndpoints
 
             return Results.Ok(ApiResponse<object>.Success(new { message = "Notificación marcada como leída." }));
         });
+
+        group.MapPatch("/mark-all-read", async (ClaimsPrincipal user, INotificationRepository repository) =>
+        {
+            var userId = user.GetUserId();
+
+            await repository.MarkAllAsReadByUserIdAsync(userId);
+
+            return Results.Ok(ApiResponse<object>.Success(new { message = "Todas las notificaciones han sido marcadas como leídas." }));
+        });
     }
 }

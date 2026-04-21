@@ -12,4 +12,5 @@ public interface INotificationRepository : IRepository<Notification>
 
     // Útil para mostrar contadores en la interfaz gráfica (ej. "Tienes 3 notificaciones")
     Task<int> GetUnreadCountByUserIdAsync(Guid userId);
+    Task MarkAllAsReadByUserIdAsync(Guid userId);
 }
