@@ -16,38 +16,39 @@ public class EmailService : IEmailService
         _configuration = configuration;
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    public void SendEmailInBackground(string to, string subject, string body)
     {
-        try
+        _ = Task.Run(async () =>
         {
-            // Extracción de variables de configuración con valores por defecto de seguridad
-            var host = _configuration["SmtpSettings:Host"] ?? "localhost";
-            var port = int.Parse(_configuration["SmtpSettings:Port"] ?? "1025");
-            var senderEmail = _configuration["SmtpSettings:SenderEmail"] ?? "noreply@sistema.local";
-            var senderName = _configuration["SmtpSettings:SenderName"] ?? "Sistema";
-
-            using var client = new SmtpClient(host, port);
-            
-            var mailMessage = new MailMessage
+            try
             {
-                From = new MailAddress(senderEmail, senderName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true, // Establecido en true para soportar plantillas HTML en el futuro
-            };
-            
-            mailMessage.To.Add(to);
+                var host = _configuration["SmtpSettings:Host"] ?? "localhost";
+                var port = int.Parse(_configuration["SmtpSettings:Port"] ?? "1025");
+                var senderEmail = _configuration["SmtpSettings:SenderEmail"] ?? "noreply@sistema.local";
+                var senderName = _configuration["SmtpSettings:SenderName"] ?? "Sistema";
 
-            // Se ejecuta la tarea de forma asíncrona real
-            await client.SendMailAsync(mailMessage);
+                using var client = new SmtpClient(host, port);
+                
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail, senderName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                
+                mailMessage.To.Add(to);
 
-            _logger.LogInformation("Correo enviado exitosamente a {To} vía SMTP", to);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error crítico al enviar correo a {To}", to);
-            return false;
-        }
+                // Se envía a través de tu SMTP real sin hacer esperar al usuario
+                await client.SendMailAsync(mailMessage);
+
+                _logger.LogInformation("Correo enviado exitosamente a {To} vía SMTP", to);
+            }
+            catch (Exception ex)
+            {
+                // Si el SMTP falla (ej. contraseña incorrecta), no tumba la reserva.
+                _logger.LogError(ex, "Error crítico al enviar correo a {To}", to);
+            }
+        });
     }
 }

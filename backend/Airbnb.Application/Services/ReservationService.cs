@@ -105,15 +105,18 @@ public class ReservationService : IReservationService
 
             await _notificationService.SendNotificationAsync(
                 property.HostId, 
-                $"Tienes una nueva reserva para '{property.Title}' del {dto.CheckIn:d} al {dto.CheckOut:d}."
+                $"Tienes una nueva reserva para '{property.Title}' del {dto.CheckIn:d} al {dto.CheckOut:d}.",
+                property.Title,
+                "Confirmada"
             );
 
             await _notificationService.SendNotificationAsync(
                 dto.GuestId, 
-                $"¡Tu reserva en '{property.Title}' ha sido confirmada del {dto.CheckIn:d} al {dto.CheckOut:d}!"
+                $"¡Tu reserva en '{property.Title}' ha sido confirmada del {dto.CheckIn:d} al {dto.CheckOut:d}!",
+                property.Title,
+                "Confirmada"
             );
 
-            // Mapeo manual para el retorno limpio
             return new ReservationResponseDto
             {
                 Id = reservation.Id,
@@ -157,8 +160,19 @@ public class ReservationService : IReservationService
 
         var cancelMessage = $"La reserva para '{property!.Title}' ha sido cancelada.";
 
-        await _notificationService.SendNotificationAsync(property.HostId, cancelMessage);
-        await _notificationService.SendNotificationAsync(reservation.GuestId, cancelMessage);
+        await _notificationService.SendNotificationAsync(
+            property.HostId, 
+            cancelMessage,
+            property.Title,
+            "Cancelada"
+        );
+        
+        await _notificationService.SendNotificationAsync(
+            reservation.GuestId, 
+            cancelMessage,
+            property.Title,
+            "Cancelada"
+        );
     }
 
     public async Task CompleteReservationAsync(Guid reservationId)
@@ -183,9 +197,20 @@ public class ReservationService : IReservationService
         reservation.Status = ReservationStatus.Completed;
         await _reservationRepo.UpdateAsync(reservation);
 
+        var property = await _propertyRepo.GetByIdAsync(reservation.PropertyId);
+
         await _notificationService.SendNotificationAsync(
             reservation.GuestId, 
-            "Esperamos que hayas disfrutado tu estancia. ¡No olvides dejar una reseña!"
+            "Esperamos que hayas disfrutado tu estancia. ¡No olvides dejar una reseña!",
+            property?.Title ?? "Alojamiento",
+            "Completada"
+        );
+
+        await _notificationService.SendNotificationAsync(
+            property!.HostId, 
+            $"El viaje de tu huésped en '{property.Title}' ha finalizado.",
+            property.Title,
+            "Completada"
         );
     }
 }

@@ -2,5 +2,5 @@ namespace Airbnb.Application.Interfaces;
 
 public interface IEmailService
 {
-    Task<bool> SendEmailAsync(string to, string subject, string body);
+    void SendEmailInBackground(string to, string subject, string body);
 }

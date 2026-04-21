@@ -1,4 +1,5 @@
 // Airbnb.Application/Services/NotificationService.cs
+using Airbnb.Application.Helpers;
 using Airbnb.Application.Interfaces;
 using Airbnb.Domain.Entities;
 using Airbnb.Domain.Interfaces;
@@ -21,9 +22,8 @@ public class NotificationService : INotificationService
         _userRepository = userRepository;
     }
 
-    public async Task SendNotificationAsync(Guid userId, string message)
+    public async Task SendNotificationAsync(Guid userId, string message, string propertyTitle, string status)
     {
-        // Guardamos la notificación en la base de datos
         var notification = new Notification
         {
             Id = Guid.NewGuid(),
@@ -34,17 +34,16 @@ public class NotificationService : INotificationService
 
         await _notificationRepo.AddAsync(notification);
 
-        // Buscamos el correo del usuario para enviarle el email
         var user = await _userRepository.GetByIdAsync(userId);
         
         if (user != null)
         {
-            // Disparamos el correo en segundo plano
-            await _emailService.SendEmailAsync(
+            string htmlBody = EmailTemplateProvider.GetReservationStatusEmail(user.FullName, propertyTitle, status);
+
+            _emailService.SendEmailInBackground(
                 to: user.Email,
-                subject: "Actualización de tu reserva en Airbnb",
-                body: message
+                subject: $"Actualización de tu reserva: {status}",
+                body: htmlBody
             );
         }
-    }
-}
+    }}
