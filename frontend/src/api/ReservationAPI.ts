@@ -4,6 +4,7 @@ import type {
   CreateReservation,
   ReservationResponse,
 } from "../schemas/reservation.schema";
+import type { Review, ReviewFormData } from "../schemas/review.schema";
 
 export const ReservationAPI = {
   create: async (
@@ -25,6 +26,15 @@ export const ReservationAPI = {
     return response.data;
   },
 
+  getPropertyReservations: async (
+    propertyId: string,
+  ): Promise<BackendResponse<ReservationResponse[]>> => {
+    const response = await api.get<BackendResponse<ReservationResponse[]>>(
+      `/reservations/property/${propertyId}`,
+    );
+    return response.data;
+  },
+
   cancel: async (id: string): Promise<BackendResponse<{ message: string }>> => {
     const response = await api.patch<BackendResponse<{ message: string }>>(
       `/reservations/${id}/cancel`,
@@ -35,6 +45,17 @@ export const ReservationAPI = {
   completeReservation: async (id: string): Promise<BackendResponse<null>> => {
     const response = await api.patch<BackendResponse<null>>(
       `/reservations/${id}/complete`,
+    );
+    return response.data;
+  },
+
+  createReview: async (
+    reservationId: string,
+    data: ReviewFormData,
+  ): Promise<BackendResponse<Review>> => {
+    const response = await api.post<BackendResponse<Review>>(
+      `/reservations/${reservationId}/reviews`,
+      data,
     );
     return response.data;
   },

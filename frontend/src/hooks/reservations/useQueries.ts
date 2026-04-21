@@ -7,3 +7,11 @@ export const useMyReservations = () => {
     queryFn: ReservationAPI.getMyReservations,
   });
 };
+
+export const useHostPropertyReservations = (propertyId: string) => {
+  return useQuery({
+    queryKey: ["host-reservations", propertyId],
+    queryFn: () => ReservationAPI.getPropertyReservations(propertyId),
+    enabled: !!propertyId,
+  });
+};

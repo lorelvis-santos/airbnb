@@ -8,6 +8,8 @@ export default function PropertyDetails() {
   const { data: response, isLoading, isError } = useProperty(id);
   const property = response?.data;
 
+  console.log(property);
+
   const baseUrl =
     import.meta.env.VITE_API_DOMAIN_URL || "http://localhost:5062";
 

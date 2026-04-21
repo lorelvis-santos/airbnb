@@ -206,6 +206,13 @@ export default function HostDashboard() {
                             >
                               <Edit className="h-4 w-4" />
                             </Link>
+                            <Link
+                              to={`/host/properties/${prop.id}/reservations`}
+                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-50 transition"
+                              title="Ver Reservaciones"
+                            >
+                              <Users className="h-4 w-4" />
+                            </Link>
                             <button
                               onClick={() => openDeleteModal(prop.id)}
                               className="rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 hover:bg-red-100 transition"

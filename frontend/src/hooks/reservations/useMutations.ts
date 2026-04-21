@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReservationAPI } from "../../api/ReservationAPI";
 import type { CreateReservation } from "../../schemas/reservation.schema";
+import type { ReviewFormData } from "../../schemas/review.schema";
 
 export const useCreateReservation = () => {
   return useMutation({
@@ -27,6 +28,19 @@ export const useCompleteReservation = () => {
       // Invalida las consultas de reservas para Huésped y Anfitrión
       queryClient.invalidateQueries({ queryKey: ["my-trips"] });
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+    },
+  });
+};
+
+export const useCreateReview = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ReviewFormData }) =>
+      ReservationAPI.createReview(id, data),
+    onSuccess: () => {
+      // Invalida los viajes para actualizar el estado UI (si es necesario) y las propiedades para recalcular el rating
+      queryClient.invalidateQueries({ queryKey: ["my-trips"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
     },
   });
 };
