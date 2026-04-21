@@ -9,6 +9,7 @@ import { AxiosError } from "axios";
 import { useCreateReservation } from "../../../hooks/reservations/useMutations";
 import type { PropertyDetail } from "../../../schemas/property.schema";
 import type { BackendResponse } from "../../../types/api.types";
+import { toast } from "react-toastify";
 
 type BookingWidgetProps = {
   property: PropertyDetail;
@@ -59,7 +60,7 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
   // 4. Manejadores de Eventos
   const handleReserve = () => {
     if (!dateRange?.from || !dateRange?.to) {
-      return alert("Selecciona las fechas de tu viaje.");
+      return toast.error("Selecciona las fechas de tu viaje.");
     }
 
     createReservation.mutate(
@@ -70,7 +71,7 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
       },
       {
         onSuccess: () => {
-          alert("¡Reserva confirmada exitosamente!");
+          toast.success("¡Reserva confirmada exitosamente!");
           setDateRange(undefined);
           setIsCalendarOpen(false);
         },
@@ -78,7 +79,7 @@ export default function BookingWidget({ property }: BookingWidgetProps) {
           const msg =
             error.response?.data?.errors?.[0] ||
             "Hubo un error al procesar la reserva.";
-          alert(msg);
+          toast.error(msg);
         },
       },
     );
