@@ -13,6 +13,8 @@ public class PropertyDetailDto
     public List<PropertyImageDto> Images { get; set; } = new();
     public List<PropertyBlockDto> Blocks { get; set; } = [];
     public List<ReservationDateDto> Reservations { get; set; } = [];
+    public double AverageRating { get; set; }
+    public int ReviewsCount { get; set; }
 }
 
 public class ReservationDateDto

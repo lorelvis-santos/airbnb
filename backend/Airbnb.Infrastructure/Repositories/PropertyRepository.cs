@@ -18,6 +18,7 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
         return await _dbSet
             .Include(p => p.Images)
             .Include(p => p.Host)
+            .Include(p => p.Reviews) // Agregado por seguridad
             .ToListAsync();
     }
 
@@ -28,6 +29,7 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             .Include(p => p.Host)
             .Include(p => p.Blocks)
             .Include(p => p.Reservations)
+            .Include(p => p.Reviews) // ¡Este está perfecto!
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -38,8 +40,9 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
             .Include(p => p.Host)
             .Include(p => p.Blocks)
             .Include(p => p.Reservations)
+            .Include(p => p.Reviews)
             .Where(p => p.HostId == hostId)
-            .OrderByDescending(p => p.Id) // Opcional: ordenar por creación
+            .OrderByDescending(p => p.Id) 
             .ToListAsync();
     }
 
@@ -56,6 +59,7 @@ public class PropertyRepository : Repository<Property>, IPropertyRepository
         var query = _dbSet
             .Include(p => p.Images)
             .Include(p => p.Host)
+            .Include(p => p.Reviews)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))

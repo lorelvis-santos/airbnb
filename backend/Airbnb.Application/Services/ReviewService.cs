@@ -64,7 +64,9 @@ public class ReviewService : IReviewService
             Id = Guid.NewGuid(),
             ReservationId = reservationId,
             Rating = dto.Rating,
-            Comment = dto.Comment
+            Comment = dto.Comment,
+            PropertyId = reservation.PropertyId,
+            GuestId = guestId,
         };
 
         await _reviewRepository.AddAsync(review);

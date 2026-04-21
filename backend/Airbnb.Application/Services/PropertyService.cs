@@ -105,7 +105,9 @@ public class PropertyService : IPropertyService
                 {
                     CheckIn = r.CheckIn,
                     CheckOut = r.CheckOut
-                })]
+                })],
+            AverageRating = property.Reviews.Count != 0 ? property.Reviews.Average(r => r.Rating) : 0,
+            ReviewsCount = property.Reviews.Count
         };
     }
 
