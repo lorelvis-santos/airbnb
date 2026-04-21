@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Star, Share, Heart, Image as ImageIcon } from "lucide-react";
 import { useProperty } from "../../hooks/properties/useQueries"; // Ajusta si el nombre de tu archivo es distinto
+import BookingWidget from "./components/BookingWidget";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -156,49 +157,8 @@ export default function PropertyDetails() {
         </div>
 
         {/* Columna Derecha: Caja de Reserva (Sticky) */}
-        <div className="relative">
-          <div className="sticky top-28 rounded-2xl border border-gray-200 p-6 shadow-xl bg-white">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <span className="text-2xl font-bold">
-                  ${property.pricePerNight}
-                </span>
-                <span className="text-gray-600"> noche</span>
-              </div>
-              <div className="flex items-center gap-1 text-sm font-semibold">
-                <Star className="h-3 w-3 fill-current" />
-                {property.reviewsCount > 0
-                  ? property.averageRating?.toFixed(2)
-                  : "Nuevo"}
-              </div>
-            </div>
-
-            {/* Placeholder del selector de fechas */}
-            <div className="rounded-xl border border-gray-400 overflow-hidden mb-4">
-              <div className="grid grid-cols-2 border-b border-gray-400 cursor-pointer">
-                <div className="p-3 border-r border-gray-400 hover:bg-gray-50 transition">
-                  <p className="text-[10px] font-bold uppercase">Llegada</p>
-                  <p className="text-sm">Añadir fecha</p>
-                </div>
-                <div className="p-3 hover:bg-gray-50 transition">
-                  <p className="text-[10px] font-bold uppercase">Salida</p>
-                  <p className="text-sm">Añadir fecha</p>
-                </div>
-              </div>
-              <div className="p-3 cursor-pointer hover:bg-gray-50 transition">
-                <p className="text-[10px] font-bold uppercase">Huéspedes</p>
-                <p className="text-sm text-gray-500">1 huésped</p>
-              </div>
-            </div>
-
-            <button className="w-full rounded-lg cursor-pointer bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 transition">
-              Reservar
-            </button>
-
-            <p className="mt-4 text-center text-sm text-gray-500">
-              No se te cobrará nada todavía
-            </p>
-          </div>
+        <div className="relative z-20">
+          <BookingWidget property={property} />
         </div>
       </div>
     </div>

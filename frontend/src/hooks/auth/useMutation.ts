@@ -19,9 +19,6 @@ export const useAuthMutations = () => {
     onSuccess: (response) => {
       const { token, ...userData } = response.data;
       setAuth({ id: userData.userId, ...userData }, token);
-
-      // Notificación de éxito
-      toast.success(`¡Bienvenido de vuelta, ${userData.fullName}!`);
       navigate("/");
     },
     onError: (error: AxiosError<BackendResponse<null>>) => {
